@@ -17,6 +17,22 @@ export const posts: Post[] = [
     views3d: 3800,
     views7d: 7200,
     totalViews: 15400,
+    // Detail page preview fields
+    fileSize: '1.2 GB',
+    unzipPassword: 'cosplaytele',
+    downloadLinks: {
+      mediafire: '#',
+      telegram: '#',
+      sorafolder: '#',
+      gofile: '#',
+    },
+    previewImages: [
+      '/images/tunacosplay/mihara-3.jpg',
+      '/images/tunacosplay/mihara-3.jpg',
+      '/images/tunacosplay/mihara-3.jpg',
+    ],
+    heroImage: '/images/tunacosplay/mihara-3.jpg',
+    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '2',

@@ -24,13 +24,20 @@ export default function DetailPage({ params }: DetailPageProps) {
 
   return (
     <DetailPostLayout
+      title={post.title}
       cosplayer={post.cosplayer}
-      cosplayerSlug="tiny-asababy"
       character={post.character}
       source={post.source}
       photoCount={post.photoCount}
       videoCount={post.videoCount}
       thumbnail={post.thumbnail}
+      tags={post.tags}
+      fileSize={post.fileSize}
+      unzipPassword={post.unzipPassword}
+      downloadLinks={post.downloadLinks}
+      previewImages={post.previewImages}
+      heroImage={post.heroImage}
+      description={post.description}
     />
   );
 }

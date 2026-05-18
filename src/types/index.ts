@@ -14,6 +14,18 @@ export interface Post {
   views3d: number;
   views7d: number;
   totalViews: number;
+  // Optional fields for detail page preview
+  fileSize?: string;
+  unzipPassword?: string;
+  downloadLinks?: {
+    mediafire?: string;
+    telegram?: string;
+    sorafolder?: string;
+    gofile?: string;
+  };
+  previewImages?: string[];
+  heroImage?: string;
+  description?: string;
 }
 
 export type Tag =
