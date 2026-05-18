@@ -161,8 +161,8 @@ To replace sample content with custom data:
 
 - **TypeScript**: ✅ PASS
 - **ESLint**: ✅ PASS
-- **Build**: ✅ PASS (9.5s)
-- **Routes**: 11 routes created (3 fully cloned, 8 partial)
+- **Build**: ✅ PASS (7.6s)
+- **Routes**: 11 routes created (7 fully cloned, 4 partial)
 
 ## Route Status
 
@@ -171,10 +171,15 @@ To replace sample content with custom data:
 - ✅ `/best-cosplayer` — Cosplayer list with rank numbers
 - ✅ `/explore-categories` — Category grid showcase
 - ✅ `/mihara-3` — Detail page with metadata, downloads, gallery
+- ✅ `/24-hours` — Ranking page with RankingPageLayout
+- ✅ `/3-day` — Ranking page with RankingPageLayout
+- ✅ `/7-day` — Ranking page with RankingPageLayout
 
 ### Partial (Generic Layout)
-- ⚠️ `/category/*` — Using generic CategoryPageLayout (needs visual refinement)
-- ⚠️ `/24-hours`, `/3-day`, `/7-day` — Using generic layout (needs ranking-specific style)
+- ⚠️ `/category/cosplay` — Using generic CategoryPageLayout
+- ⚠️ `/category/video-cosplayy` — Using generic CategoryPageLayout
+- ⚠️ `/category/cosplay-ero` — Using generic CategoryPageLayout (safe placeholder)
+- ⚠️ `/category/nude` — Using generic CategoryPageLayout (safe placeholder)
 
 ## Known Limitations
 

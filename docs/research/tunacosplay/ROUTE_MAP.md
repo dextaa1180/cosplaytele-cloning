@@ -8,9 +8,9 @@
 | https://cosplaytele.com/category/video-cosplayy/ | `/category/video-cosplayy` | category | partial | Generic category layout (needs visual refinement) |
 | https://cosplaytele.com/explore-categories/ | `/explore-categories` | static | cloned | Category grid showcase |
 | https://cosplaytele.com/best-cosplayer/ | `/best-cosplayer` | ranking | cloned | Cosplayer list with rank numbers |
-| https://cosplaytele.com/24-hours/ | `/24-hours` | ranking | partial | Generic category layout (needs ranking style) |
-| https://cosplaytele.com/3-day/ | `/3-day` | ranking | partial | Generic category layout (needs ranking style) |
-| https://cosplaytele.com/7-day/ | `/7-day` | ranking | partial | Generic category layout (needs ranking style) |
+| https://cosplaytele.com/24-hours/ | `/24-hours` | ranking | cloned | Ranking page with RankingPageLayout |
+| https://cosplaytele.com/3-day/ | `/3-day` | ranking | cloned | Ranking page with RankingPageLayout |
+| https://cosplaytele.com/7-day/ | `/7-day` | ranking | cloned | Ranking page with RankingPageLayout |
 | https://cosplaytele.com/category/nude/ | `/category/nude` | category | partial | Generic category layout (safe placeholder) |
 | https://cosplaytele.com/category/cosplay-ero/ | `/category/cosplay-ero` | category | partial | Generic category layout (safe placeholder) |
 | https://cosplaytele.com/category/cosplay/ | `/category/cosplay` | category | partial | Generic category layout (needs visual refinement) |
