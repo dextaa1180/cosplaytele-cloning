@@ -1,6 +1,12 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useRef } from 'react';
 
 export function Navbar() {
+  const topDropdownRef = useRef<HTMLDetailsElement>(null);
+  const levelDropdownRef = useRef<HTMLDetailsElement>(null);
+
   const topCosplayLinks = [
     { label: '24 Hours', href: '/24-hours' },
     { label: '3 Day', href: '/3-day' },
@@ -12,6 +18,32 @@ export function Navbar() {
     { label: 'Cosplay Ero', href: '/category/cosplay-ero' },
     { label: 'Nude', href: '/category/nude' },
   ];
+
+  // Auto-close other dropdown when one opens
+  useEffect(() => {
+    const handleTopToggle = () => {
+      if (topDropdownRef.current?.open && levelDropdownRef.current?.open) {
+        levelDropdownRef.current.open = false;
+      }
+    };
+
+    const handleLevelToggle = () => {
+      if (levelDropdownRef.current?.open && topDropdownRef.current?.open) {
+        topDropdownRef.current.open = false;
+      }
+    };
+
+    const topElement = topDropdownRef.current;
+    const levelElement = levelDropdownRef.current;
+
+    topElement?.addEventListener('toggle', handleTopToggle);
+    levelElement?.addEventListener('toggle', handleLevelToggle);
+
+    return () => {
+      topElement?.removeEventListener('toggle', handleTopToggle);
+      levelElement?.removeEventListener('toggle', handleLevelToggle);
+    };
+  }, []);
 
   return (
     <nav className="relative z-[100] w-full border-b border-[#56B6C6]/40 bg-[#EFE3CA]">
@@ -36,7 +68,7 @@ export function Navbar() {
             </Link>
 
             {/* Top Cosplay Dropdown */}
-            <details className="group relative">
+            <details ref={topDropdownRef} className="group relative">
               <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg px-3 py-2 font-semibold text-[#170C79] transition hover:bg-[#8ACBD0]/25">
                 Top Cosplay
                 <span className="transition group-open:rotate-180">▾</span>
@@ -56,7 +88,7 @@ export function Navbar() {
             </details>
 
             {/* Level Cosplay Dropdown */}
-            <details className="group relative">
+            <details ref={levelDropdownRef} className="group relative">
               <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg px-3 py-2 font-semibold text-[#170C79] transition hover:bg-[#8ACBD0]/25">
                 Level Cosplay
                 <span className="transition group-open:rotate-180">▾</span>
