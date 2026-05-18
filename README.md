@@ -1,6 +1,6 @@
 # cosplaytele-cloning
 
-**Tunacosplay** — A clean Next.js clone of https://cosplaytele.com/ homepage structure.
+**Tunacosplay** — A clean Next.js multi-page clone of https://cosplaytele.com/
 
 ## Project Info
 
@@ -9,7 +9,7 @@
 - **Repository**: https://github.com/dextaa1180/cosplaytele-cloning
 - **Framework**: Next.js 14+ with TypeScript
 - **Styling**: Tailwind CSS
-- **Status**: ✅ Build PASS
+- **Status**: ✅ Multi-page clone COMPLETE
 
 ## Tech Stack
 
@@ -19,30 +19,80 @@
 - **ESLint** — Code quality
 - **Prettier** — Code formatting
 
+## Routes Cloned
+
+### Homepage
+- `/` — Homepage with post grid
+
+### Category Pages
+- `/category/cosplay` — Cosplay category
+- `/category/video-cosplayy` — Video cosplay category
+- `/category/cosplay-ero` — Cosplay ero category (safe placeholder)
+- `/category/nude` — Nude category (safe placeholder)
+
+### Ranking Pages
+- `/24-hours` — Top 24 hours
+- `/3-day` — Top 3 days
+- `/7-day` — Top 7 days
+- `/best-cosplayer` — Best cosplayer ranking
+
+### Static Pages
+- `/explore-categories` — Category exploration page
+
+### Detail Pages
+- `/[slug]` — Individual post detail page (e.g., `/mihara-3`)
+
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── page.tsx              # Homepage route
-│   └── [slug]/page.tsx       # Detail page (structure ready)
+│   ├── page.tsx                    # Homepage
+│   ├── [slug]/page.tsx             # Detail page
+│   ├── 24-hours/page.tsx           # Ranking page
+│   ├── 3-day/page.tsx              # Ranking page
+│   ├── 7-day/page.tsx              # Ranking page
+│   ├── best-cosplayer/page.tsx     # Ranking page
+│   ├── explore-categories/page.tsx # Static page
+│   └── category/
+│       ├── cosplay/page.tsx        # Category page
+│       ├── cosplay-ero/page.tsx    # Category page
+│       ├── nude/page.tsx           # Category page
+│       └── video-cosplayy/page.tsx # Category page
 ├── components/
-│   ├── PostCard.tsx          # Reusable card component
-│   └── PostGrid.tsx          # Grid container
+│   ├── layout/
+│   │   ├── Header.tsx              # Top header
+│   │   ├── Navbar.tsx              # Main navbar with dropdowns
+│   │   ├── Footer.tsx              # Footer
+│   │   └── PageLayout.tsx          # Layout wrapper
+│   ├── category/
+│   │   └── CategoryPageLayout.tsx  # Category page layout
+│   ├── PostCard.tsx                # Post card component
+│   └── PostGrid.tsx                # Post grid container
 ├── data/
-│   └── posts.ts              # Post data + types
+│   └── posts.ts                    # Post data + types
 ├── lib/
-│   └── cn.ts                 # Utility functions
+│   └── cn.ts                       # Utility functions
 └── types/
-    └── index.ts              # Shared types
+    └── index.ts                    # Shared types
 
 public/
-├── images/tunacosplay/       # Local image assets
+├── images/tunacosplay/             # Local image assets
 └── ...
 
 docs/
-├── research/tunacosplay/     # Design research
-└── self-improvement/         # Error logs & patterns
+├── research/tunacosplay/
+│   ├── ROUTE_MAP.md                # Route mapping
+│   ├── PAGE_TOPOLOGY.md            # Page structure
+│   ├── DESIGN_TOKENS.md            # Design system
+│   ├── QA.md                       # QA report
+│   └── components/
+│       └── PostCard.spec.md        # Component specification
+└── self-improvement/
+    ├── ERROR_LOG.md                # Error tracking
+    ├── FIX_PATTERNS.md             # Common fixes
+    ├── DECISIONS.md                # Architecture decisions
+    └── CHECKLIST.md                # Project checklist
 ```
 
 ## Features
@@ -53,6 +103,11 @@ docs/
 - ✅ Next.js Image optimization
 - ✅ TypeScript for type safety
 - ✅ ESLint + Prettier configured
+- ✅ Multi-page routing with navbar dropdowns
+- ✅ Category pages with reusable layout
+- ✅ Ranking pages
+- ✅ Detail page for individual posts
+- ✅ Explore categories page
 
 ## Getting Started
 
@@ -106,12 +161,20 @@ To replace sample content with custom data:
 
 - **TypeScript**: ✅ PASS
 - **ESLint**: ✅ PASS
-- **Build**: ✅ PASS (8.6s)
-- **Desktop QA**: ✅ PASS (1440px)
-- **Mobile QA**: ✅ PASS (390px)
+- **Build**: ✅ PASS (8.4s)
+- **Routes**: ✅ 11 routes cloned and tested
+
+## Known Limitations
+
+1. **Adult Categories**: `/category/nude/` and `/category/cosplay-ero/` use safe placeholder layout. Explicit media not committed to repository.
+2. **Sample Data**: Using placeholder post data. Replace with actual content in `src/data/posts.ts`.
+3. **Images**: Using placeholder image paths. Add actual images to `public/images/tunacosplay/`.
+4. **Pagination**: Not yet implemented. Can be added if needed.
+5. **Search**: Not yet implemented. Can be added if needed.
 
 ## Documentation
 
+- **Route Map**: `docs/research/tunacosplay/ROUTE_MAP.md` — All routes and their status
 - **Research**: `docs/research/tunacosplay/` — Design tokens, page topology, component specs
 - **QA Report**: `docs/research/tunacosplay/QA.md` — Build status and visual QA results
 - **Self-Improvement**: `docs/self-improvement/` — Error log, fix patterns, decisions
@@ -120,8 +183,8 @@ To replace sample content with custom data:
 
 1. Replace sample data in `src/data/posts.ts`
 2. Add custom images to `public/images/tunacosplay/`
-3. Build detail pages (`src/app/[slug]/page.tsx`)
-4. Add pagination or infinite scroll if needed
+3. Implement pagination if needed
+4. Add search functionality if needed
 5. Deploy to production
 
 ## License
