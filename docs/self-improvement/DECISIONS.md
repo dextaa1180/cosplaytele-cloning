@@ -1,9 +1,29 @@
 # Decisions
 
+## Decision: Restructure Component Paths
+
+**Date**: 2026-05-18
+**Rationale**: Simplify folder structure; move components to root level instead of nested folders
+**Impact**: 
+- `src/components/PostCard.tsx` (not `src/components/sections/PostCard.tsx`)
+- `src/components/PostGrid.tsx` (not `src/components/sections/PostGrid.tsx`)
+**Status**: ✅ Applied
+
+---
+
+## Decision: Data in Dedicated Folder
+
+**Date**: 2026-05-18
+**Rationale**: Keep data separate from components; easier to manage and replace
+**Impact**: Data stored in `src/data/posts.ts` (not `src/features/posts/data.ts`)
+**Status**: ✅ Applied
+
+---
+
 ## Decision: Use Tailwind CSS for Styling
 
 **Date**: 2026-05-18
-**Rationale**: Template includes Tailwind; provides rapid responsive design without custom CSS
+**Rationale**: Template includes Tailwind; rapid responsive design without custom CSS
 **Impact**: All components use Tailwind utility classes
 **Status**: ✅ Applied
 
@@ -12,13 +32,13 @@
 ## Decision: Static Data Instead of Database
 
 **Date**: 2026-05-18
-**Rationale**: Ruly will replace content with custom data; database not required per scope
-**Impact**: Posts stored in `src/features/posts/data.ts` as TypeScript array
+**Rationale**: Ruly will replace content with custom data; database not required
+**Impact**: Posts stored in `src/data/posts.ts` as TypeScript array
 **Status**: ✅ Applied
 
 ---
 
-## Decision: Next.js Image Component for Optimization
+## Decision: Next.js Image Component
 
 **Date**: 2026-05-18
 **Rationale**: Built-in optimization, lazy loading, responsive sizing
@@ -30,24 +50,6 @@
 ## Decision: Client Component for PostGrid
 
 **Date**: 2026-05-18
-**Rationale**: Grid needs interactivity (hover states, links); 'use client' directive added
+**Rationale**: Grid needs interactivity (hover states, links)
 **Impact**: PostGrid and PostCard marked as client components
-**Status**: ✅ Applied
-
----
-
-## Decision: Playwright for Screenshot Capture
-
-**Date**: 2026-05-18
-**Rationale**: Deterministic, fixed viewport, supports both desktop and mobile
-**Impact**: Screenshots captured at 1440px and 390px for QA reference
-**Status**: ✅ Applied
-
----
-
-## Decision: 4-Column Grid on Desktop
-
-**Date**: 2026-05-18
-**Rationale**: Matches original site structure; good balance of content density and readability
-**Impact**: Grid uses `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`
 **Status**: ✅ Applied

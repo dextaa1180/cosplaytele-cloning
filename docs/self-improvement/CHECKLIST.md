@@ -1,35 +1,34 @@
 # Project Checklist
 
 ## Before Build
-- [x] Read previous error log (none existed; first clone)
+- [x] Read previous error log
 - [x] Validate routes (ROUTES.md created)
 - [x] Assets downloaded (placeholder paths configured)
 - [x] Component specs written (PostCard.spec.md)
-- [x] SOC respected (components, data, features separated)
+- [x] SOC respected (components, data separated)
 
-## Before Final Telegram Message
-- [x] lint passed (2 warnings fixed)
+## Before Final Push
+- [x] lint passed
 - [x] typecheck passed
-- [x] build passed (13.2s)
+- [x] build passed (8.6s)
 - [x] desktop visual QA done (1440px screenshot)
 - [x] mobile visual QA done (390px screenshot)
 - [x] known gaps documented (QA.md)
 
 ## Self-Improvement Files
-- [x] ERROR_LOG.md created (3 errors documented + fixed)
-- [x] FIX_PATTERNS.md created (3 patterns documented)
-- [x] DECISIONS.md created (6 decisions documented)
+- [x] ERROR_LOG.md created
+- [x] FIX_PATTERNS.md created
+- [x] DECISIONS.md created
 - [x] CHECKLIST.md created (this file)
 
 ## Project Structure
 - [x] `src/app/page.tsx` — homepage route
-- [x] `src/components/sections/PostCard.tsx` — card component
-- [x] `src/components/sections/PostGrid.tsx` — grid container
-- [x] `src/features/posts/data.ts` — post data + types
-- [x] `docs/research/cosplay-tele/` — research docs
-- [x] `docs/design-references/cosplay-tele/` — screenshots
+- [x] `src/components/PostCard.tsx` — card component
+- [x] `src/components/PostGrid.tsx` — grid container
+- [x] `src/data/posts.ts` — post data + types
+- [x] `docs/research/tunacosplay/` — research docs
+- [x] `docs/design-references/tunacosplay/` — screenshots
 - [x] `docs/self-improvement/` — self-improvement files
-- [x] `scripts/capture-screenshots.mjs` — screenshot automation
 
 ## Ready for Handoff
 - [x] Homepage structure complete

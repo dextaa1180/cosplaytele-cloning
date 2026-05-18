@@ -1,154 +1,129 @@
-# AI Website Cloner Template
+# Tunacosplay — Website Clone Project
 
-<a href="https://github.com/JCodesMore/ai-website-cloner-template/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" /></a> <a href="https://github.com/JCodesMore/ai-website-cloner-template/stargazers"><img src="https://img.shields.io/github/stars/JCodesMore/ai-website-cloner-template?style=flat" alt="Stars" /></a> <a href="https://discord.gg/hrTSX5yTpB"><img src="https://img.shields.io/discord/1400896964597383279?label=discord" alt="Discord" /></a>
+## Project Overview
 
-A reusable template for reverse-engineering any website into a clean, modern Next.js codebase using AI coding agents. 
+**Tunacosplay** is a clean Next.js clone of https://cosplaytele.com/ homepage structure. Built with modern web standards, Separation of Concerns, and ready for custom content replacement.
 
-**Recommended: [Claude Code](https://docs.anthropic.com/en/docs/claude-code) with Opus 4.7 for best results** — but works with a variety of AI coding agents.
+## Project Details
 
-Point it at a URL, run `/clone-website`, and your AI agent will inspect the site, extract design tokens and assets, write component specs, and dispatch parallel builders to reconstruct every section.
+- **Target Website**: https://cosplaytele.com/
+- **Project Name**: Tunacosplay
+- **Framework**: Next.js 14+ with TypeScript
+- **Styling**: Tailwind CSS
+- **Build Status**: ✅ PASS (typecheck, lint, build)
+- **Repository**: https://github.com/dextaa1180/cosplaytele-cloning
 
-## Demo
+## Architecture
 
-[![Watch the demo](docs/design-references/comparison.png)](https://youtu.be/O669pVZ_qr0)
-
-> Click the image above to watch the full demo on YouTube.
-
-## Quick Start
-
-1. **Clone this repository**
-   ```bash
-   git clone https://github.com/JCodesMore/ai-website-cloner-template.git my-clone
-   cd my-clone
-   ```
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-3. **Start your AI agent** — Claude Code recommended:
-   ```bash
-   claude --chrome
-   ```
-4. **Run the skill**:
-   ```
-   /clone-website <target-url1> [<target-url2> ...]
-   ```
-5. **Customize** (optional) — after the base clone is built, modify as needed
-
-> Using a different agent? Open `AGENTS.md` for project instructions — most agents pick it up automatically.
-
-## Supported Platforms
-
-| Agent                                                         | Status                     |
-| ------------------------------------------------------------- | -------------------------- |
-| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | **Recommended** — Opus 4.7 |
-| [Codex CLI](https://github.com/openai/codex)                  | Supported                  |
-| [OpenCode](https://opencode.ai/)                              | Supported                  |
-| [GitHub Copilot](https://github.com/features/copilot)         | Supported                  |
-| [Cursor](https://cursor.com/)                                 | Supported                  |
-| [Windsurf](https://codeium.com/windsurf)                      | Supported                  |
-| [Gemini CLI](https://github.com/google-gemini/gemini-cli)     | Supported                  |
-| [Cline](https://github.com/cline/cline)                       | Supported                  |
-| [Roo Code](https://github.com/RooCodeInc/Roo-Code)            | Supported                  |
-| [Continue](https://continue.dev/)                             | Supported                  |
-| [Amazon Q](https://aws.amazon.com/q/developer/)               | Supported                  |
-| [Augment Code](https://www.augmentcode.com/)                  | Supported                  |
-| [Aider](https://aider.chat/)                                  | Supported                  |
-
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) 24+
-- An AI coding agent (see [Supported Platforms](#supported-platforms))
-
-## Tech Stack
-
-- **Next.js 16** — App Router, React 19, TypeScript strict
-- **shadcn/ui** — Radix primitives + Tailwind CSS v4
-- **Tailwind CSS v4** — oklch design tokens
-- **Lucide React** — default icons (replaced by extracted SVGs during cloning)
-
-## How It Works
-
-The `/clone-website` skill runs a multi-phase pipeline:
-
-1. **Reconnaissance** — screenshots, design token extraction, interaction sweep (scroll, click, hover, responsive)
-2. **Foundation** — updates fonts, colors, globals, downloads all assets
-3. **Component Specs** — writes detailed spec files (`docs/research/components/`) with exact computed CSS values, states, behaviors, and content
-4. **Parallel Build** — dispatches builder agents in git worktrees, one per section/component
-5. **Assembly & QA** — merges worktrees, wires up the page, runs visual diff against the original
-
-Each builder agent receives the full component specification inline — exact `getComputedStyle()` values, interaction models, multi-state content, responsive breakpoints, and asset paths. No guessing.
-
-## Use Cases
-
-- **Platform migration** — rebuild a site you own from WordPress/Webflow/Squarespace into a modern Next.js codebase
-- **Lost source code** — your site is live but the repo is gone, the developer left, or the stack is legacy. Get the code back in a modern format
-- **Learning** — deconstruct how production sites achieve specific layouts, animations, and responsive behavior by working with real code
-
-## Not Intended For
-
-- **Phishing or impersonation** — this project must not be used for deceptive purposes, impersonation, or any activity that breaks the law.
-- **Passing off someone's design as your own** — logos, brand assets, and original copy belong to their owners.
-- **Violating terms of service** — some sites explicitly prohibit scraping or reproduction. Check first.
-
-## Project Structure
+### Separation of Concerns (SOC)
 
 ```
 src/
-  app/              # Next.js routes
-  components/       # React components
-    ui/             # shadcn/ui primitives
-    icons.tsx       # Extracted SVG icons
-  lib/utils.ts      # cn() utility
-  types/            # TypeScript interfaces
-  hooks/            # Custom React hooks
+├── app/
+│   ├── page.tsx              # Homepage route (assembly only)
+│   └── [slug]/page.tsx       # Detail page (structure ready)
+├── components/
+│   ├── PostCard.tsx          # Reusable card component
+│   └── PostGrid.tsx          # Grid container
+├── data/
+│   └── posts.ts              # Post data + TypeScript types
+├── lib/
+│   └── cn.ts                 # Utility functions
+└── types/
+    └── index.ts              # Shared types
+
 public/
-  images/           # Downloaded images from target
-  videos/           # Downloaded videos from target
-  seo/              # Favicons, OG images
+├── images/tunacosplay/       # Local image assets
+└── ...
+
 docs/
-  research/         # Extraction output & component specs
-  design-references/ # Screenshots
-scripts/
-  sync-agent-rules.sh  # Regenerate agent instruction files
-  sync-skills.mjs      # Regenerate /clone-website for all platforms
-AGENTS.md           # Agent instructions (single source of truth)
-CLAUDE.md           # Claude Code config (imports AGENTS.md)
-GEMINI.md           # Gemini CLI config (imports AGENTS.md)
+├── research/tunacosplay/
+│   ├── ROUTES.md             # Route mapping
+│   ├── PAGE_TOPOLOGY.md      # Page structure
+│   ├── DESIGN_TOKENS.md      # Design system
+│   ├── QA.md                 # QA report
+│   └── components/
+│       └── PostCard.spec.md  # Component specification
+└── self-improvement/
+    ├── ERROR_LOG.md          # Error tracking
+    ├── FIX_PATTERNS.md       # Common fixes
+    ├── DECISIONS.md          # Architecture decisions
+    └── CHECKLIST.md          # Project checklist
 ```
 
-## Commands
+## Key Features
 
+- ✅ Responsive grid layout (4 columns desktop, 2 tablet, 1 mobile)
+- ✅ Dark mode support (Tailwind dark: classes)
+- ✅ Hover animations and transitions
+- ✅ Next.js Image optimization
+- ✅ TypeScript for type safety
+- ✅ ESLint + Prettier configured
+- ✅ Self-improvement documentation
+
+## Build & Development
+
+### Install Dependencies
 ```bash
-npm run dev    # Start dev server
-npm run build  # Production build
-npm run lint   # ESLint check
-npm run typecheck # TypeScript check
-npm run check  # Run lint + typecheck + build
+npm install
 ```
 
-### If using docker
-
+### Development Server
 ```bash
-docker compose up app --build # build and run the app
-docker compose up dev --build # run the app in dev mode on port 3001
+npm run dev
 ```
 
-## Updating for Other Platforms
+### Build for Production
+```bash
+npm run build
+npm start
+```
 
-Two source-of-truth files power all platform support. Edit the source, then run the sync script:
+### Quality Checks
+```bash
+npm run lint      # ESLint
+npm run typecheck # TypeScript
+npm run build     # Full build
+```
 
-| What                   | Source of truth                         | Sync command                       |
-| ---------------------- | --------------------------------------- | ---------------------------------- |
-| Project instructions   | `AGENTS.md`                             | `bash scripts/sync-agent-rules.sh` |
-| `/clone-website` skill | `.claude/skills/clone-website/SKILL.md` | `node scripts/sync-skills.mjs`     |
+## Content Replacement
 
-Each script regenerates the platform-specific copies automatically. Agents that read the source files natively need no regeneration.
+To replace sample content with custom data:
 
+1. **Edit `src/data/posts.ts`**:
+   - Update `posts` array with your content
+   - Each post needs: `id`, `slug`, `cosplayer`, `character`, `source`, `photoCount`, `videoCount`, `thumbnail`
 
-## Star History
+2. **Add Images**:
+   - Place images in `public/images/tunacosplay/`
+   - Update `thumbnail` paths in data
 
-[![Star History Chart](https://api.star-history.com/svg?repos=JCodesMore/ai-website-cloner-template&type=Date)](https://star-history.com/#JCodesMore/ai-website-cloner-template&Date)
+3. **Rebuild**:
+   ```bash
+   npm run build
+   ```
+
+## Documentation
+
+- **Research**: `docs/research/tunacosplay/` — Design tokens, page topology, component specs
+- **QA Report**: `docs/research/tunacosplay/QA.md` — Build status and visual QA results
+- **Self-Improvement**: `docs/self-improvement/` — Error log, fix patterns, decisions, checklist
+
+## Build Status
+
+- **TypeScript**: ✅ PASS
+- **ESLint**: ✅ PASS
+- **Build**: ✅ PASS (8.6s)
+- **Desktop QA**: ✅ PASS (1440px)
+- **Mobile QA**: ✅ PASS (390px)
+
+## Next Steps
+
+1. Replace sample data in `src/data/posts.ts`
+2. Add custom images to `public/images/tunacosplay/`
+3. Build detail pages (`src/app/[slug]/page.tsx`)
+4. Add pagination or infinite scroll if needed
+5. Deploy to production
 
 ## License
 

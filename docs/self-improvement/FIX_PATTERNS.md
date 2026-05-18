@@ -1,86 +1,58 @@
 # Fix Patterns
 
-## Pattern: Playwright Navigation Timeout
+## Pattern: Import Path Mismatch
 
 ### Symptoms
-- `page.goto: Timeout 30000ms exceeded`
-- Page takes >30s to reach `networkidle` state
-- Screenshot capture hangs
+- Import error: `Cannot find module '@/components/sections/PostGrid'`
+- Component exists but path is wrong
+- Build fails with module resolution error
 
 ### Best Fix
-Use `waitUntil: 'domcontentloaded'` instead of `networkidle`. Add explicit timeout.
+Update import path to match actual component location.
 
 ### Commands
-```javascript
-await page.goto(URL, { 
-  waitUntil: 'domcontentloaded', 
-  timeout: 15000 
-});
+```typescript
+// Wrong:
+import { PostGrid } from '@/components/sections/PostGrid';
+
+// Correct:
+import { PostGrid } from '@/components/PostGrid';
 ```
 
 ### Files Usually Involved
-- `scripts/capture-screenshots.mjs`
-- Any Playwright navigation script
+- `src/app/page.tsx`
+- Any file importing components
 
 ### Prevention
-- Use `domcontentloaded` as default for visual captures
-- Reserve `networkidle` only for data-heavy apps
-- Set explicit timeout to fail fast
+- Verify component location before importing
+- Use consistent folder structure (components at root level)
+- Check tsconfig paths if using path aliases
 
 ---
 
-## Pattern: ESLint Unused Imports
+## Pattern: Data Import Path
 
 ### Symptoms
-- ESLint warnings: "is defined but never used"
-- Build passes but warnings remain
-- Linting fails if warnings treated as errors
+- Import error: `Cannot find module '@/features/posts/data'`
+- Data file exists but path is wrong
 
 ### Best Fix
-Remove unused imports immediately after refactoring.
+Update import path to match data location.
 
 ### Commands
-```bash
-npm run lint -- --fix
+```typescript
+// Wrong:
+import { posts } from '@/features/posts/data';
+
+// Correct:
+import { posts } from '@/data/posts';
 ```
 
 ### Files Usually Involved
-- Any `.ts`, `.tsx`, `.mjs` files with imports
+- `src/components/PostGrid.tsx`
+- Any component using data
 
 ### Prevention
-- Review imports after code changes
-- Run lint before final build
-- Remove unused imports proactively
-
----
-
-## Pattern: Next.js Image Optimization
-
-### Symptoms
-- Images not loading in production
-- Placeholder images showing instead of real images
-- Image paths incorrect
-
-### Best Fix
-Use `next/image` with proper `src` paths and `fill` prop for containers.
-
-### Commands
-```tsx
-import Image from 'next/image';
-
-<Image
-  src="/images/path/to/image.jpg"
-  alt="description"
-  fill
-  className="object-cover"
-/>
-```
-
-### Files Usually Involved
-- `src/components/sections/*.tsx`
-- Any component rendering images
-
-### Prevention
-- Always use `next/image` for optimization
-- Store images in `public/` directory
-- Use relative paths from `public/`
+- Keep data files in `src/data/` directory
+- Use consistent naming: `posts.ts` not `posts-data.ts`
+- Update all imports when moving files
