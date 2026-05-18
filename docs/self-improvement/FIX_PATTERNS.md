@@ -330,3 +330,64 @@ const filteredPosts =
 
 ### Lesson Learned
 Category-based filtering is not appropriate for all pages. Video pages, search results, and tag pages may need different filtering logic. Make filtering behavior explicit through props or separate components rather than assuming one filter fits all.
+
+---
+
+## Pattern: React onClick Dropdowns Not Firing in Production
+
+### Symptoms
+- Dropdown buttons visible but clicking does nothing in live preview
+- No console logs appear when clicking dropdown triggers
+- Build passes (typecheck, lint, build all succeed)
+- Dev server works locally but production preview fails
+- Browser console shows only HMR WebSocket errors, no React errors
+
+### Root Cause
+- React onClick handlers may not fire reliably in certain deployment environments
+- Client-side hydration issues
+- Event handler registration timing issues
+- Complex React state management not working as expected in production
+
+### Best Fix
+**Use native HTML `<details>` and `<summary>` elements for simple navigation dropdowns.**
+
+Native HTML elements work without JavaScript, are more reliable, and have better accessibility support.
+
+### Commands
+```typescript
+// WRONG: React state dropdown (may not work in production)
+const [open, setOpen] = useState(false);
+<button onClick={() => setOpen(!open)}>Menu</button>
+{open && <div>...</div>}
+
+// CORRECT: Native HTML dropdown (always works)
+<details className="group relative">
+  <summary className="flex cursor-pointer list-none items-center gap-1">
+    Menu
+    <span className="transition group-open:rotate-180">▾</span>
+  </summary>
+  <div className="absolute left-0 top-full z-[9999] mt-2">
+    <Link href="/page">Item</Link>
+  </div>
+</details>
+
+// Hide default summary marker
+<style jsx>{`
+  summary::-webkit-details-marker {
+    display: none;
+  }
+`}</style>
+```
+
+### Files Usually Involved
+- src/components/layout/Navbar.tsx
+- Any component with navigation dropdowns
+
+### Prevention
+- **Use native HTML elements when possible** - `<details>/<summary>` for dropdowns, `<dialog>` for modals
+- **Test in production environment** - Dev server behavior ≠ production behavior
+- **Prefer progressive enhancement** - Features should work without JavaScript when possible
+- **Manual browser testing is MANDATORY** - Build passing does NOT verify interactive features work
+
+### Lesson Learned
+**Build passing ≠ feature working in production.** React onClick handlers that work in dev may fail in production due to hydration, timing, or environment issues. For simple navigation dropdowns, native HTML `<details>/<summary>` is more reliable than React state management. Always test interactive features in the actual deployment environment, not just local dev server.
