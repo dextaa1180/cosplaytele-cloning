@@ -184,7 +184,7 @@ To replace sample content with custom data:
 
 ## Known Limitations
 
-1. **Detail Pages are Preview-Only**: Detail pages (`/[slug]`) show Cosplaytele-style layout with dark hero section, metadata panel, and download buttons, but are **preview-only**. Full gallery/download content is intentionally not hosted. Download buttons are placeholders (href="#"). This is a design clone, not a content hosting platform.
+1. **Detail Pages are Preview-Only with Admin-Managed Content**: Detail pages (`/[slug]`) show Cosplaytele-style layout with dark hero section, metadata panel, and download buttons. Preview images and download links are **admin-managed** (not hardcoded). Posts without preview images show thumbnail placeholder with message: "Preview images will be managed from the admin dashboard." Posts without download links show message: "Download links will be added from the admin dashboard." This is a design clone with admin-ready frontend, not a content hosting platform. See `docs/research/tunacosplay/ADMIN_DASHBOARD_PLAN.md` for future admin dashboard plans.
 2. **Partial Visual Cloning**: Category and ranking pages use generic layouts. Original site may have different visual styles, card layouts, or metadata display that haven't been captured yet.
 3. **Adult Categories**: `/category/nude/` and `/category/cosplay-ero/` use safe placeholder layout. Explicit media not committed to repository.
 4. **Sample Data**: Using placeholder post data. Replace with actual content in `src/data/posts.ts`.

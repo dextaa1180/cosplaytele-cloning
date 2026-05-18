@@ -124,7 +124,7 @@
 - Consider adding view counts to ranking page cards
 - Consider adding pagination for large datasets
 
-### Detail Page (/mihara-3) - Preview-Only Layout (2026-05-18)
+### Detail Page (/mihara-3) - Preview-Only Layout with Admin-Managed Content (2026-05-18)
 - [x] Dark hero section with background image overlay
 - [x] Uppercase tags displayed above title (COSPLAY-GAME)
 - [x] Large title format: "{cosplayer} cosplay {character} - {source} '{photoCount} photos and {videoCount} videos'"
@@ -132,16 +132,17 @@
 - [x] Metadata panel with cyan left border (border-cyan-500)
 - [x] Metadata labels: Cosplayer, Character, Appear In, Photos, File Size
 - [x] Unzip password displayed in white box: "cosplaytele"
-- [x] Download section with description text
-- [x] Red rounded pill download buttons (bg-red-600, hover:bg-red-700)
-- [x] Download buttons: DOWNLOAD MEDIAFIRE, DOWNLOAD TELEGRAM, DOWNLOAD SORAFOLDER, DOWNLOAD GOFILE
-- [x] Download buttons are placeholders (href="#")
-- [x] Preview section with "Preview" heading
-- [x] Preview grid (2-4 columns responsive)
-- [x] Preview-only notice displayed: "Preview only. Full gallery/download content is not hosted in this clone."
-- [x] **IMPORTANT**: This is a preview-only layout, NOT full content hosting
-- [x] **IMPORTANT**: Explicit media is NOT committed to repository
-- [x] **IMPORTANT**: Download links are placeholders only
+- [x] Download section with conditional rendering:
+  - If downloadLinks exist → show red rounded pill download buttons
+  - If no downloadLinks → show message: "Download links will be added from the admin dashboard."
+- [x] Preview section with conditional rendering:
+  - If previewImages exist → render preview grid (max 8 images)
+  - If no previewImages → show thumbnail placeholder with message: "Preview images will be managed from the admin dashboard."
+- [x] Preview-only notice displayed (default or custom description)
+- [x] **IMPORTANT**: Preview images and download links are admin-managed (not hardcoded)
+- [x] **IMPORTANT**: Only mihara-3 has sample preview data as demo
+- [x] **IMPORTANT**: Other posts show admin-managed placeholders
+- [x] **IMPORTANT**: Frontend is admin-ready for future dashboard
 
 ## Known Issues
 - Navbar dropdowns require manual browser testing (build pass ≠ feature working)

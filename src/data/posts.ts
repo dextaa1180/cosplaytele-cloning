@@ -50,18 +50,9 @@ export const posts: Post[] = [
     views3d: 2900,
     views7d: 5600,
     totalViews: 12300,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '450 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/hatsune-miku.jpg'],
-    heroImage: '/images/tunacosplay/hatsune-miku.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '3',
@@ -79,18 +70,9 @@ export const posts: Post[] = [
     views3d: 4200,
     views7d: 8100,
     totalViews: 18900,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '890 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/lynae.jpg'],
-    heroImage: '/images/tunacosplay/lynae.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '4',
@@ -108,18 +90,9 @@ export const posts: Post[] = [
     views3d: 2400,
     views7d: 4800,
     totalViews: 10200,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '620 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/maid-42.jpg'],
-    heroImage: '/images/tunacosplay/maid-42.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '5',
@@ -137,18 +110,9 @@ export const posts: Post[] = [
     views3d: 3300,
     views7d: 6400,
     totalViews: 14100,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '380 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/school-girl-31.jpg'],
-    heroImage: '/images/tunacosplay/school-girl-31.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '6',
@@ -166,18 +130,9 @@ export const posts: Post[] = [
     views3d: 3900,
     views7d: 7500,
     totalViews: 16800,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '780 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/phoebe.jpg'],
-    heroImage: '/images/tunacosplay/phoebe.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '7',
@@ -195,18 +150,9 @@ export const posts: Post[] = [
     views3d: 4500,
     views7d: 8700,
     totalViews: 19200,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '520 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/ganyu-34.jpg'],
-    heroImage: '/images/tunacosplay/ganyu-34.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '8',
@@ -224,18 +170,9 @@ export const posts: Post[] = [
     views3d: 2700,
     views7d: 5300,
     totalViews: 11800,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '410 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/nicole-demara-14.jpg'],
-    heroImage: '/images/tunacosplay/nicole-demara-14.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '9',
@@ -253,18 +190,9 @@ export const posts: Post[] = [
     views3d: 3600,
     views7d: 7000,
     totalViews: 15500,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '290 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/marin-kitagawa-38.jpg'],
-    heroImage: '/images/tunacosplay/marin-kitagawa-38.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
   {
     id: '10',
@@ -282,17 +210,8 @@ export const posts: Post[] = [
     views3d: 3100,
     views7d: 6100,
     totalViews: 13400,
-    // Detail page preview fields
+    // Detail page preview fields (admin-managed)
     fileSize: '550 MB',
     unzipPassword: 'cosplaytele',
-    downloadLinks: {
-      mediafire: '#',
-      telegram: '#',
-      sorafolder: '#',
-      gofile: '#',
-    },
-    previewImages: ['/images/tunacosplay/fox-cutie.jpg'],
-    heroImage: '/images/tunacosplay/fox-cutie.jpg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
   },
 ];

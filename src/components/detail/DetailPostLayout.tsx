@@ -44,7 +44,6 @@ export function DetailPostLayout({
   thumbnail,
 }: DetailPostLayoutProps) {
   const heroImageSrc = heroImage || thumbnail;
-  const displayPreviewImages = previewImages.length > 0 ? previewImages : [thumbnail];
 
   return (
     <div className="w-full bg-neutral-900 text-white">
@@ -161,73 +160,100 @@ export function DetailPostLayout({
 
         {/* Download Section */}
         <div className="mb-12 rounded-lg bg-neutral-800 p-6">
-          <p className="mb-6 text-sm text-neutral-300">
-            Enjoy better photo with large size and no copyright, please download
-            the gallery using the link below
-          </p>
+          {downloadLinks && (downloadLinks.mediafire || downloadLinks.telegram || downloadLinks.sorafolder || downloadLinks.gofile) ? (
+            <>
+              <p className="mb-6 text-sm text-neutral-300">
+                Enjoy better photo with large size and no copyright, please download
+                the gallery using the link below
+              </p>
 
-          <div className="flex flex-col items-center gap-3">
-            {downloadLinks?.mediafire && (
-              <a
-                href={downloadLinks.mediafire}
-                className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
-              >
-                Download Mediafire
-              </a>
-            )}
-            {downloadLinks?.telegram && (
-              <a
-                href={downloadLinks.telegram}
-                className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
-              >
-                Download Telegram
-              </a>
-            )}
-            {downloadLinks?.sorafolder && (
-              <a
-                href={downloadLinks.sorafolder}
-                className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
-              >
-                Download SoraFolder
-              </a>
-            )}
-            {downloadLinks?.gofile && (
-              <a
-                href={downloadLinks.gofile}
-                className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
-              >
-                Download Gofile
-              </a>
-            )}
-          </div>
+              <div className="flex flex-col items-center gap-3">
+                {downloadLinks.mediafire && (
+                  <a
+                    href={downloadLinks.mediafire}
+                    className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
+                  >
+                    Download Mediafire
+                  </a>
+                )}
+                {downloadLinks.telegram && (
+                  <a
+                    href={downloadLinks.telegram}
+                    className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
+                  >
+                    Download Telegram
+                  </a>
+                )}
+                {downloadLinks.sorafolder && (
+                  <a
+                    href={downloadLinks.sorafolder}
+                    className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
+                  >
+                    Download SoraFolder
+                  </a>
+                )}
+                {downloadLinks.gofile && (
+                  <a
+                    href={downloadLinks.gofile}
+                    className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
+                  >
+                    Download Gofile
+                  </a>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="text-center text-sm text-neutral-400">
+              Download links will be added from the admin dashboard.
+            </p>
+          )}
         </div>
 
         {/* Preview Section */}
         <div>
           <h2 className="mb-6 text-2xl font-bold">Preview</h2>
 
-          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {displayPreviewImages.slice(0, 8).map((img, index) => (
-              <div
-                key={index}
-                className="relative aspect-square overflow-hidden rounded-lg bg-neutral-800"
-              >
+          {previewImages && previewImages.length > 0 ? (
+            <>
+              <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                {previewImages.slice(0, 8).map((img, index) => (
+                  <div
+                    key={index}
+                    className="relative aspect-square overflow-hidden rounded-lg bg-neutral-800"
+                  >
+                    <Image
+                      src={img}
+                      alt={`Preview ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="mb-6 rounded-lg border border-neutral-700 bg-neutral-800 p-8 text-center">
+              <div className="relative mx-auto mb-4 aspect-square w-32 overflow-hidden rounded-lg bg-neutral-700">
                 <Image
-                  src={img}
-                  alt={`Preview ${index + 1}`}
+                  src={thumbnail}
+                  alt="Thumbnail preview"
                   fill
                   className="object-cover"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes="128px"
                 />
               </div>
-            ))}
-          </div>
-
-          {description && (
-            <div className="rounded-lg border border-neutral-700 bg-neutral-800 p-4">
-              <p className="text-sm text-neutral-300">{description}</p>
+              <p className="text-sm text-neutral-400">
+                Preview images will be managed from the admin dashboard.
+              </p>
             </div>
           )}
+
+          <div className="rounded-lg border border-neutral-700 bg-neutral-800 p-4">
+            <p className="text-sm text-neutral-300">
+              {description || 'Preview only. Full gallery/download content is not hosted in this clone. Content will be managed from the admin dashboard.'}
+            </p>
+          </div>
         </div>
       </div>
     </div>
