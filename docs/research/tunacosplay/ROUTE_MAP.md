@@ -14,7 +14,7 @@
 | https://cosplaytele.com/category/nude/ | `/category/nude` | category | partial | Generic category layout (safe placeholder) |
 | https://cosplaytele.com/category/cosplay-ero/ | `/category/cosplay-ero` | category | partial | Generic category layout (safe placeholder) |
 | https://cosplaytele.com/category/cosplay/ | `/category/cosplay` | category | partial | Generic category layout (needs visual refinement) |
-| https://cosplaytele.com/mihara-3/ | `/mihara-3` | detail | cloned | Detail with metadata, downloads, gallery |
+| https://cosplaytele.com/mihara-3/ | `/mihara-3` | detail | preview-only | Cosplaytele-style preview: dark hero, metadata panel, download buttons (placeholders), preview grid. Full content not hosted. |
 
 ## Shared Components
 

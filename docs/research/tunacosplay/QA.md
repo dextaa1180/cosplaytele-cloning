@@ -123,3 +123,27 @@
 - Manual browser testing for dropdown functionality
 - Consider adding view counts to ranking page cards
 - Consider adding pagination for large datasets
+
+### Detail Page (/mihara-3) - Preview-Only Layout (2026-05-18)
+- [x] Dark hero section with background image overlay
+- [x] Uppercase tags displayed above title (COSPLAY-GAME)
+- [x] Large title format: "{cosplayer} cosplay {character} - {source} '{photoCount} photos and {videoCount} videos'"
+- [x] Dark background (bg-neutral-900) with white text
+- [x] Metadata panel with cyan left border (border-cyan-500)
+- [x] Metadata labels: Cosplayer, Character, Appear In, Photos, File Size
+- [x] Unzip password displayed in white box: "cosplaytele"
+- [x] Download section with description text
+- [x] Red rounded pill download buttons (bg-red-600, hover:bg-red-700)
+- [x] Download buttons: DOWNLOAD MEDIAFIRE, DOWNLOAD TELEGRAM, DOWNLOAD SORAFOLDER, DOWNLOAD GOFILE
+- [x] Download buttons are placeholders (href="#")
+- [x] Preview section with "Preview" heading
+- [x] Preview grid (2-4 columns responsive)
+- [x] Preview-only notice displayed: "Preview only. Full gallery/download content is not hosted in this clone."
+- [x] **IMPORTANT**: This is a preview-only layout, NOT full content hosting
+- [x] **IMPORTANT**: Explicit media is NOT committed to repository
+- [x] **IMPORTANT**: Download links are placeholders only
+
+## Known Issues
+- Navbar dropdowns require manual browser testing (build pass ≠ feature working)
+- Video Cosplay filtering now works correctly (filters by videoCount > 0)
+- Detail pages are preview-only by design (not a bug, intentional limitation)

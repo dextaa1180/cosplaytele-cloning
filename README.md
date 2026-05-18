@@ -171,7 +171,7 @@ To replace sample content with custom data:
 - ✅ `/` — Homepage with post grid
 - ✅ `/best-cosplayer` — Cosplayer list with rank numbers
 - ✅ `/explore-categories` — Category grid showcase
-- ✅ `/mihara-3` — Detail page with metadata, downloads, gallery
+- ✅ `/mihara-3` — Detail page with Cosplaytele-style preview layout (dark hero, metadata panel, download buttons, preview grid)
 - ✅ `/24-hours` — Ranking page with RankingPageLayout
 - ✅ `/3-day` — Ranking page with RankingPageLayout
 - ✅ `/7-day` — Ranking page with RankingPageLayout
@@ -184,13 +184,13 @@ To replace sample content with custom data:
 
 ## Known Limitations
 
-1. **Partial Visual Cloning**: Category and ranking pages use generic layouts. Original site may have different visual styles, card layouts, or metadata display that haven't been captured yet.
-2. **Adult Categories**: `/category/nude/` and `/category/cosplay-ero/` use safe placeholder layout. Explicit media not committed to repository.
-3. **Sample Data**: Using placeholder post data. Replace with actual content in `src/data/posts.ts`.
-4. **Images**: Using placeholder image paths. Add actual images to `public/images/tunacosplay/`.
-5. **Pagination**: Not yet implemented. Can be added if needed.
-6. **Search**: Not yet implemented. Can be added if needed.
-7. **Download Links**: Detail page download buttons are placeholders (no actual download functionality).
+1. **Detail Pages are Preview-Only**: Detail pages (`/[slug]`) show Cosplaytele-style layout with dark hero section, metadata panel, and download buttons, but are **preview-only**. Full gallery/download content is intentionally not hosted. Download buttons are placeholders (href="#"). This is a design clone, not a content hosting platform.
+2. **Partial Visual Cloning**: Category and ranking pages use generic layouts. Original site may have different visual styles, card layouts, or metadata display that haven't been captured yet.
+3. **Adult Categories**: `/category/nude/` and `/category/cosplay-ero/` use safe placeholder layout. Explicit media not committed to repository.
+4. **Sample Data**: Using placeholder post data. Replace with actual content in `src/data/posts.ts`.
+5. **Images**: Using placeholder image paths. Add actual images to `public/images/tunacosplay/`.
+6. **Pagination**: Not yet implemented. Can be added if needed.
+7. **Search**: Not yet implemented. Can be added if needed.
 8. **Ranking Data**: Ranking pages show generic post grid instead of ranked list with view counts/stats.
 
 ## Documentation

@@ -391,3 +391,67 @@ const [open, setOpen] = useState(false);
 
 ### Lesson Learned
 **Build passing ≠ feature working in production.** React onClick handlers that work in dev may fail in production due to hydration, timing, or environment issues. For simple navigation dropdowns, native HTML `<details>/<summary>` is more reliable than React state management. Always test interactive features in the actual deployment environment, not just local dev server.
+
+---
+
+## Pattern: Detail Pages as Preview-Only Layouts
+
+### Symptoms
+- Need to clone detail pages from adult content sites
+- Cannot commit explicit media to repository
+- Full content/gallery/download hosting is not appropriate for clone projects
+- Download links may be protected or require authentication
+
+### Best Fix
+**Design detail pages as preview-only layouts that show structure and metadata without hosting full content.**
+
+Preview-only approach:
+- Show page structure and design
+- Display metadata (cosplayer, character, file size, etc.)
+- Include placeholder download buttons (href="#")
+- Show small preview grid (3-8 safe images)
+- Add clear notice: "Preview only. Full gallery/download content is not hosted in this clone."
+
+### Commands
+```typescript
+// Add optional preview fields to data model
+interface Post {
+  // ... existing fields
+  fileSize?: string;
+  unzipPassword?: string;
+  downloadLinks?: {
+    mediafire?: string;
+    telegram?: string;
+  };
+  previewImages?: string[];
+  heroImage?: string;
+  description?: string;
+}
+
+// Use safe placeholder values
+{
+  fileSize: '1.2 GB',
+  unzipPassword: 'cosplaytele',
+  downloadLinks: {
+    mediafire: '#',
+    telegram: '#',
+  },
+  previewImages: ['/safe-placeholder.jpg'],
+  description: 'Preview only. Full gallery/download content is not hosted in this clone.',
+}
+```
+
+### Files Usually Involved
+- src/types/index.ts (data model)
+- src/data/posts.ts (sample data)
+- src/components/detail/DetailPostLayout.tsx (layout component)
+- src/app/[slug]/page.tsx (detail page)
+
+### Prevention
+- **Do not commit explicit/adult media** - Use safe placeholders only
+- **Do not implement real download links** - Use "#" or disabled anchors
+- **Add preview-only notice** - Make it clear this is not full content hosting
+- **Document limitations** - Update README and docs to explain preview-only approach
+
+### Lesson Learned
+**Clone projects should focus on structure and design, not content hosting.** When cloning sites with protected or adult content, implement preview-only layouts that demonstrate the design without hosting the actual content. This keeps the repository clean, legal, and focused on the technical implementation rather than content distribution.
