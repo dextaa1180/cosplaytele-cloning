@@ -4,29 +4,29 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="w-full border-t border-[#56B6C6]/40 bg-[#EFE3CA]">
+    <footer className="w-full border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* About */}
           <div>
-            <h3 className="mb-4 font-bold text-[#170C79]">
+            <h3 className="mb-4 font-bold text-slate-900 dark:text-white">
               About Tunacosplay
             </h3>
-            <p className="text-sm text-[#56B6C6]">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Explore amazing cosplay collections from talented cosplayers around the world.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="mb-4 font-bold text-[#170C79]">
+            <h3 className="mb-4 font-bold text-slate-900 dark:text-white">
               Quick Links
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/explore-categories"
-                  className="text-[#56B6C6] hover:text-[#170C79]"
+                  className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 >
                   Explore Categories
                 </Link>
@@ -34,7 +34,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/best-cosplayer"
-                  className="text-[#56B6C6] hover:text-[#170C79]"
+                  className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 >
                   Best Cosplayer
                 </Link>
@@ -42,7 +42,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/24-hours"
-                  className="text-[#56B6C6] hover:text-[#170C79]"
+                  className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 >
                   Top 24 Hours
                 </Link>
@@ -52,14 +52,14 @@ export function Footer() {
 
           {/* Categories */}
           <div>
-            <h3 className="mb-4 font-bold text-[#170C79]">
+            <h3 className="mb-4 font-bold text-slate-900 dark:text-white">
               Categories
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/category/cosplay"
-                  className="text-[#56B6C6] hover:text-[#170C79]"
+                  className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 >
                   Cosplay
                 </Link>
@@ -67,7 +67,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/category/video-cosplayy"
-                  className="text-[#56B6C6] hover:text-[#170C79]"
+                  className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 >
                   Video Cosplay
                 </Link>
@@ -77,8 +77,8 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-8 border-t border-[#56B6C6]/40 pt-8">
-          <p className="text-center text-sm text-[#56B6C6]">
+        <div className="mt-8 border-t border-slate-200 pt-8 dark:border-slate-800">
+          <p className="text-center text-sm text-slate-600 dark:text-slate-400">
             © 2026 Tunacosplay. All rights reserved.
           </p>
         </div>
