@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Post } from '@/data/posts';
+import { Post } from '@/types';
 
 interface PostCardProps {
   post: Post;

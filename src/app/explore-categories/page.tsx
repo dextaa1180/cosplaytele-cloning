@@ -1,43 +1,57 @@
 'use client';
 
-import Link from 'next/link';
-
-const categories = [
-  { name: 'Cosplay', href: '/category/cosplay' },
-  { name: 'Video Cosplay', href: '/category/video-cosplayy' },
-  { name: 'Cosplay Ero', href: '/category/cosplay-ero' },
-  { name: 'Nude', href: '/category/nude' },
-];
+import { posts } from '@/data/posts';
+import { ExploreSection } from '@/components/explore/ExploreSection';
+import { TopViewSection } from '@/components/explore/TopViewSection';
+import {
+  filterPostsByTag,
+  sortPostsByViews24h,
+  sortPostsByViews3d,
+  sortPostsByViews7d,
+  getTopPosts,
+} from '@/lib/posts';
 
 export default function ExploreCategoriesPage() {
+  // Filter posts by tags
+  const cosplayGamePosts = filterPostsByTag(posts, 'cosplay-game');
+  const cosplayAnimeMangaPosts = filterPostsByTag(posts, 'cosplay-anime-manga');
+  const cosplayFreestylePosts = filterPostsByTag(posts, 'cosplay-freestyle');
+
+  // Sort posts by views for TOP VIEW section
+  const top24hPosts = getTopPosts(sortPostsByViews24h(posts), 6);
+  const top3dPosts = getTopPosts(sortPostsByViews3d(posts), 6);
+  const top7dPosts = getTopPosts(sortPostsByViews7d(posts), 6);
+
   return (
     <div className="w-full bg-white dark:bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-8">
+        <div className="mb-12">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
             Explore Categories
           </h1>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
-            Browse all available cosplay categories
+            Browse cosplay collections by category and popularity
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((category) => (
-            <Link
-              key={category.href}
-              href={category.href}
-              className="group rounded-lg border border-slate-200 bg-slate-50 p-6 transition-all hover:border-slate-300 hover:bg-white dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
-            >
-              <h2 className="text-lg font-semibold text-slate-900 group-hover:text-slate-700 dark:text-white dark:group-hover:text-slate-200">
-                {category.name}
-              </h2>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                Explore {category.name.toLowerCase()} collections
-              </p>
-            </Link>
-          ))}
-        </div>
+        {/* COSPLAY GAME Section */}
+        <ExploreSection title="COSPLAY GAME" posts={cosplayGamePosts} />
+
+        {/* COSPLAY ANIME/MANGA Section */}
+        <ExploreSection
+          title="COSPLAY ANIME/MANGA"
+          posts={cosplayAnimeMangaPosts}
+        />
+
+        {/* COSPLAY FREESTYLE Section */}
+        <ExploreSection title="COSPLAY FREESTYLE" posts={cosplayFreestylePosts} />
+
+        {/* TOP VIEW Section with Tabs */}
+        <TopViewSection
+          posts24h={top24hPosts}
+          posts3d={top3dPosts}
+          posts7d={top7dPosts}
+        />
       </div>
     </div>
   );

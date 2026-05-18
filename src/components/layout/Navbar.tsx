@@ -8,42 +8,64 @@ export function Navbar() {
 
   const topCosplayLinks = [
     { label: '24 Hours', href: '/24-hours' },
-    { label: '3 Days', href: '/3-day' },
-    { label: '7 Days', href: '/7-day' },
+    { label: '3 Day', href: '/3-day' },
+    { label: '7 Day', href: '/7-day' },
   ];
 
-  const categoryLinks = [
+  const levelCosplayLinks = [
     { label: 'Cosplay', href: '/category/cosplay' },
     { label: 'Cosplay Ero', href: '/category/cosplay-ero' },
     { label: 'Nude', href: '/category/nude' },
-    { label: 'Video Cosplay', href: '/category/video-cosplayy' },
   ];
+
+  const handleMouseEnter = (dropdown: string) => {
+    setOpenDropdown(dropdown);
+  };
+
+  const handleMouseLeave = () => {
+    setOpenDropdown(null);
+  };
+
+  const handleClick = (dropdown: string) => {
+    setOpenDropdown(openDropdown === dropdown ? null : dropdown);
+  };
 
   return (
     <nav className="w-full border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-4">
           {/* Left: Logo/Home */}
-          <Link href="/" className="font-bold text-slate-900 dark:text-white">
+          <Link
+            href="/"
+            className="font-bold text-slate-900 hover:text-slate-700 dark:text-white dark:hover:text-slate-200"
+          >
             Home
           </Link>
 
           {/* Center: Navigation Links */}
           <div className="flex items-center gap-6">
+            {/* Video Cosplay - Direct Link */}
+            <Link
+              href="/category/video-cosplayy"
+              className="text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+            >
+              Video Cosplay
+            </Link>
+
             {/* Top Cosplay Dropdown */}
-            <div className="relative">
+            <div
+              className="relative"
+              onMouseEnter={() => handleMouseEnter('top-cosplay')}
+              onMouseLeave={handleMouseLeave}
+            >
               <button
-                onClick={() =>
-                  setOpenDropdown(
-                    openDropdown === 'top-cosplay' ? null : 'top-cosplay'
-                  )
-                }
+                onClick={() => handleClick('top-cosplay')}
                 className="text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
               >
                 Top Cosplay ▼
               </button>
               {openDropdown === 'top-cosplay' && (
-                <div className="absolute left-0 top-full mt-2 w-40 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                <div className="absolute left-0 top-full z-50 mt-2 w-40 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
                   {topCosplayLinks.map((link) => (
                     <Link
                       key={link.href}
@@ -58,21 +80,21 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Category Dropdown */}
-            <div className="relative">
+            {/* Level Cosplay Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => handleMouseEnter('level-cosplay')}
+              onMouseLeave={handleMouseLeave}
+            >
               <button
-                onClick={() =>
-                  setOpenDropdown(
-                    openDropdown === 'category' ? null : 'category'
-                  )
-                }
+                onClick={() => handleClick('level-cosplay')}
                 className="text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
               >
-                Category ▼
+                Level Cosplay ▼
               </button>
-              {openDropdown === 'category' && (
-                <div className="absolute left-0 top-full mt-2 w-40 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
-                  {categoryLinks.map((link) => (
+              {openDropdown === 'level-cosplay' && (
+                <div className="absolute left-0 top-full z-50 mt-2 w-40 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                  {levelCosplayLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
@@ -91,7 +113,7 @@ export function Navbar() {
               href="/explore-categories"
               className="text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
             >
-              Explore
+              Explore Categories
             </Link>
 
             {/* Best Cosplayer Link */}

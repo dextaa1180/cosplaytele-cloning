@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | https://cosplaytele.com/ | `/` | homepage | cloned | Grid layout with post cards |
 | https://cosplaytele.com/category/video-cosplayy/ | `/category/video-cosplayy` | category | partial | Generic category layout (needs visual refinement) |
-| https://cosplaytele.com/explore-categories/ | `/explore-categories` | static | cloned | Category grid showcase |
+| https://cosplaytele.com/explore-categories/ | `/explore-categories` | static | cloned | Multi-section explore page with COSPLAY GAME, ANIME/MANGA, FREESTYLE, TOP VIEW |
 | https://cosplaytele.com/best-cosplayer/ | `/best-cosplayer` | ranking | cloned | Cosplayer list with rank numbers |
 | https://cosplaytele.com/24-hours/ | `/24-hours` | ranking | cloned | Ranking page with RankingPageLayout |
 | https://cosplaytele.com/3-day/ | `/3-day` | ranking | cloned | Ranking page with RankingPageLayout |
