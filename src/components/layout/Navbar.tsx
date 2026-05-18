@@ -46,13 +46,13 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="relative z-[100] w-full border-b border-[#56B6C6]/40 bg-[#EFE3CA]">
+    <nav className="relative z-[100] w-full border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-4">
           {/* Left: Logo/Home */}
           <Link
             href="/"
-            className="font-bold text-[#170C79] hover:text-[#56B6C6]"
+            className="font-bold text-slate-900 hover:text-slate-700 dark:text-white dark:hover:text-slate-200"
           >
             Home
           </Link>
@@ -62,24 +62,24 @@ export function Navbar() {
             {/* Video Cosplay - Direct Link */}
             <Link
               href="/category/video-cosplayy"
-              className="text-[#170C79] hover:text-[#56B6C6]"
+              className="text-slate-900 hover:text-slate-700 dark:text-white dark:hover:text-slate-200"
             >
               Video Cosplay
             </Link>
 
             {/* Top Cosplay Dropdown */}
             <details ref={topDropdownRef} className="group relative">
-              <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg px-3 py-2 font-semibold text-[#170C79] transition hover:bg-[#8ACBD0]/25">
+              <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg px-3 py-2 font-semibold text-slate-900 transition hover:bg-slate-100 dark:text-white dark:hover:bg-slate-800">
                 Top Cosplay
                 <span className="transition group-open:rotate-180">▾</span>
               </summary>
 
-              <div className="absolute left-0 top-full z-[9999] mt-2 min-w-48 rounded-xl border border-[#56B6C6]/40 bg-[#EFE3CA] p-2 shadow-xl">
+              <div className="absolute left-0 top-full z-[9999] mt-2 min-w-48 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
                 {topCosplayLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="block rounded-lg px-4 py-2 text-[#170C79] hover:bg-[#8ACBD0]/30"
+                    className="block rounded-lg px-4 py-2 text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-slate-800"
                   >
                     {link.label}
                   </Link>
@@ -89,17 +89,17 @@ export function Navbar() {
 
             {/* Level Cosplay Dropdown */}
             <details ref={levelDropdownRef} className="group relative">
-              <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg px-3 py-2 font-semibold text-[#170C79] transition hover:bg-[#8ACBD0]/25">
+              <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg px-3 py-2 font-semibold text-slate-900 transition hover:bg-slate-100 dark:text-white dark:hover:bg-slate-800">
                 Level Cosplay
                 <span className="transition group-open:rotate-180">▾</span>
               </summary>
 
-              <div className="absolute left-0 top-full z-[9999] mt-2 min-w-48 rounded-xl border border-[#56B6C6]/40 bg-[#EFE3CA] p-2 shadow-xl">
+              <div className="absolute left-0 top-full z-[9999] mt-2 min-w-48 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
                 {levelCosplayLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="block rounded-lg px-4 py-2 text-[#170C79] hover:bg-[#8ACBD0]/30"
+                    className="block rounded-lg px-4 py-2 text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-slate-800"
                   >
                     {link.label}
                   </Link>
@@ -110,7 +110,7 @@ export function Navbar() {
             {/* Explore Categories Link */}
             <Link
               href="/explore-categories"
-              className="text-[#170C79] hover:text-[#56B6C6]"
+              className="text-slate-900 hover:text-slate-700 dark:text-white dark:hover:text-slate-200"
             >
               Explore Categories
             </Link>
@@ -118,7 +118,7 @@ export function Navbar() {
             {/* Best Cosplayer Link */}
             <Link
               href="/best-cosplayer"
-              className="text-[#170C79] hover:text-[#56B6C6]"
+              className="text-slate-900 hover:text-slate-700 dark:text-white dark:hover:text-slate-200"
             >
               Best Cosplayer
             </Link>
