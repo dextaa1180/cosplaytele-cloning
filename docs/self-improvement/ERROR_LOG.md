@@ -23,3 +23,34 @@ Misunderstood that template base was separate from target cloning task.
 
 ### Status
 ✅ Fixed
+
+---
+
+## Error: Double Heading on Category Pages
+
+**Date:** 2026-05-18
+
+**Symptom:**
+Category pages (e.g., `/category/video-cosplayy`) displayed two headings:
+1. Category-specific heading from CategoryPageLayout
+2. Generic "Tunacosplay Gallery" heading from PostGrid component
+
+**Root Cause:**
+PostGrid component had hardcoded heading and description inside it. CategoryPageLayout called PostGrid, resulting in double headings.
+
+**Fix:**
+1. Refactored PostGrid to accept `posts` as props and removed hardcoded heading
+2. Updated CategoryPageLayout to filter posts by category and pass to PostGrid
+3. Updated homepage to render its own heading and pass all posts to PostGrid
+4. Updated all category pages to pass `category` prop to CategoryPageLayout
+
+**Files Changed:**
+- `src/components/PostGrid.tsx` - Removed heading, added posts prop
+- `src/components/category/CategoryPageLayout.tsx` - Added category filtering
+- `src/app/page.tsx` - Added homepage heading
+- `src/app/category/*/page.tsx` - Added category prop
+
+**Prevention:**
+- Keep presentation components (like PostGrid) pure - no hardcoded content
+- Layout components should handle headings and data filtering
+- Page components should only assemble layouts with appropriate props

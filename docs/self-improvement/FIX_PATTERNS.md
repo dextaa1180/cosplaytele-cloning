@@ -109,3 +109,72 @@ import { posts } from '@/data/posts';
 
 ### Lesson Learned
 **Build passing ≠ feature working.** Interactive UI elements (dropdowns, modals, tabs) require manual browser testing, not just compile-time verification.
+
+---
+
+## Pattern: Double Heading on Pages
+
+### Symptoms
+- Pages display duplicate headings
+- Category pages show both category-specific heading and generic "Gallery" heading
+- Layout components render their own heading, then call a component that also renders a heading
+
+### Root Cause
+- Presentation components (like PostGrid) have hardcoded content (headings, descriptions)
+- Layout components call these presentation components without knowing they contain headings
+- Result: double headings, inconsistent page structure
+
+### Best Fix
+1. **Refactor presentation components to be pure** - accept data as props, no hardcoded content
+2. **Layout components handle headings** - they know the page context and should render appropriate headings
+3. **Page components assemble layouts** - pass appropriate props to layouts
+
+### Commands
+```typescript
+// WRONG: PostGrid with hardcoded heading
+export function PostGrid() {
+  return (
+    <div>
+      <h1>Tunacosplay Gallery</h1>
+      <div className="grid">
+        {posts.map(post => <PostCard post={post} />)}
+      </div>
+    </div>
+  );
+}
+
+// CORRECT: PostGrid as pure presentation component
+export function PostGrid({ posts }: { posts: Post[] }) {
+  return (
+    <div className="grid">
+      {posts.map(post => <PostCard key={post.id} post={post} />)}
+    </div>
+  );
+}
+
+// Layout handles heading
+export function CategoryPageLayout({ title, description, category }) {
+  const filteredPosts = filterPostsByCategory(posts, category);
+  return (
+    <div>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      <PostGrid posts={filteredPosts} />
+    </div>
+  );
+}
+```
+
+### Files Usually Involved
+- Presentation components (PostGrid, CardList, etc.)
+- Layout components (CategoryPageLayout, PageLayout, etc.)
+- Page components (page.tsx files)
+
+### Prevention
+- **Keep presentation components pure** - no hardcoded content, accept all data as props
+- **Layout components own page structure** - headings, descriptions, data filtering
+- **Page components are thin** - just assemble layouts with appropriate props
+- **Test each page visually** - ensure no duplicate headings or content
+
+### Lesson Learned
+Component hierarchy matters. Presentation components should be dumb (props in, UI out). Layout components should be smart (know context, filter data, render structure). Page components should be thin (just assembly).

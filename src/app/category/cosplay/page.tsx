@@ -5,6 +5,7 @@ export default function CosplayPage() {
     <CategoryPageLayout
       title="Cosplay"
       description="Explore amazing cosplay collections"
+      category="cosplay"
     />
   );
 }

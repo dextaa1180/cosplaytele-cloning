@@ -5,6 +5,7 @@ export default function NudePage() {
     <CategoryPageLayout
       title="Nude"
       description="Explore nude collections (safe placeholder)"
+      category="nude"
     />
   );
 }

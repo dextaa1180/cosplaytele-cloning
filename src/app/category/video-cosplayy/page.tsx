@@ -5,6 +5,7 @@ export default function VideoCosplayPage() {
     <CategoryPageLayout
       title="Video Cosplay"
       description="Explore amazing video cosplay collections"
+      category="video-cosplayy"
     />
   );
 }

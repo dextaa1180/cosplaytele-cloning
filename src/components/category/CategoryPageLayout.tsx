@@ -1,16 +1,22 @@
 'use client';
 
+import { posts } from '@/data/posts';
 import { PostGrid } from '@/components/PostGrid';
+import { filterPostsByCategory } from '@/lib/posts';
 
 interface CategoryPageLayoutProps {
   title: string;
   description?: string;
+  category: string;
 }
 
 export function CategoryPageLayout({
   title,
   description,
+  category,
 }: CategoryPageLayoutProps) {
+  const filteredPosts = filterPostsByCategory(posts, category);
+
   return (
     <div className="w-full bg-white dark:bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -25,7 +31,7 @@ export function CategoryPageLayout({
           )}
         </div>
 
-        <PostGrid />
+        <PostGrid posts={filteredPosts} />
       </div>
     </div>
   );
