@@ -31,8 +31,8 @@ export function TopViewSection({
           onClick={() => setActiveTab('24h')}
           className={`rounded-lg px-4 py-2 font-medium transition-colors ${
             activeTab === '24h'
-              ? 'bg-red-600 text-white'
-              : 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+              ? 'bg-[#170C79] text-[#EFE3CA]'
+              : 'bg-[#EFE3CA] text-[#170C79] hover:bg-[#8ACBD0]/30'
           }`}
         >
           24 Hours
@@ -41,8 +41,8 @@ export function TopViewSection({
           onClick={() => setActiveTab('3d')}
           className={`rounded-lg px-4 py-2 font-medium transition-colors ${
             activeTab === '3d'
-              ? 'bg-red-600 text-white'
-              : 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+              ? 'bg-[#170C79] text-[#EFE3CA]'
+              : 'bg-[#EFE3CA] text-[#170C79] hover:bg-[#8ACBD0]/30'
           }`}
         >
           3 Days
@@ -51,8 +51,8 @@ export function TopViewSection({
           onClick={() => setActiveTab('7d')}
           className={`rounded-lg px-4 py-2 font-medium transition-colors ${
             activeTab === '7d'
-              ? 'bg-red-600 text-white'
-              : 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+              ? 'bg-[#170C79] text-[#EFE3CA]'
+              : 'bg-[#EFE3CA] text-[#170C79] hover:bg-[#8ACBD0]/30'
           }`}
         >
           7 Days

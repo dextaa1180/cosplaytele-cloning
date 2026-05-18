@@ -11,9 +11,9 @@ interface PostCardProps {
 export function PostCard({ post }: PostCardProps) {
   return (
     <Link href={`/${post.slug}`}>
-      <article className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-lg dark:bg-slate-900">
+      <article className="group relative overflow-hidden rounded-lg bg-[#EFE3CA] shadow-md transition-all duration-300 hover:shadow-xl">
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
+        <div className="relative aspect-square overflow-hidden bg-[#56B6C6]/10">
           <Image
             src={post.thumbnail}
             alt={`${post.cosplayer} as ${post.character}`}
@@ -23,7 +23,7 @@ export function PostCard({ post }: PostCardProps) {
           />
 
           {/* Badge */}
-          <div className="absolute bottom-2 right-2 rounded bg-black/70 px-2 py-1 text-xs font-semibold text-white">
+          <div className="absolute bottom-2 right-2 rounded bg-[#170C79]/90 px-2 py-1 text-xs font-semibold text-[#EFE3CA]">
             📷 {post.photoCount}
             {post.videoCount > 0 && ` | 🎥 ${post.videoCount}`}
           </div>
@@ -31,13 +31,13 @@ export function PostCard({ post }: PostCardProps) {
 
         {/* Content */}
         <div className="p-4">
-          <h3 className="mb-1 text-base font-semibold text-slate-900 dark:text-slate-100">
+          <h3 className="mb-1 text-base font-semibold text-[#170C79]">
             {post.cosplayer}
           </h3>
-          <p className="mb-1 text-sm font-medium text-slate-600 dark:text-slate-400">
+          <p className="mb-1 text-sm font-medium text-[#56B6C6]">
             {post.character}
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-500">
+          <p className="text-xs text-[#56B6C6]/70">
             {post.source}
           </p>
         </div>

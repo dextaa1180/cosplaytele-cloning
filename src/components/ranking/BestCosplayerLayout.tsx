@@ -22,13 +22,13 @@ const topCosplayers: Cosplayer[] = [
 
 export function BestCosplayerLayout() {
   return (
-    <div className="w-full bg-white dark:bg-slate-950">
+    <div className="w-full bg-white">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-[#170C79]">
             Best Cosplayers
           </h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-[#56B6C6]">
             Top cosplayers ranked by community
           </p>
         </div>
@@ -38,13 +38,13 @@ export function BestCosplayerLayout() {
             <Link
               key={cosplayer.slug}
               href={`/category/${cosplayer.slug}`}
-              className="group flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 transition-all hover:border-slate-300 hover:bg-white dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
+              className="group flex items-center gap-4 rounded-lg border border-[#56B6C6]/40 bg-[#EFE3CA] p-4 transition-all hover:border-[#56B6C6] hover:bg-[#8ACBD0]/20"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-lg font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#170C79] text-lg font-bold text-[#EFE3CA]">
                 {index + 1}
               </div>
               <div className="flex-1">
-                <h2 className="text-base font-semibold text-slate-900 group-hover:text-slate-700 dark:text-white dark:group-hover:text-slate-200">
+                <h2 className="text-base font-semibold text-[#170C79] group-hover:text-[#56B6C6]">
                   {cosplayer.name}
                 </h2>
               </div>

@@ -23,14 +23,14 @@ export function CategoryPageLayout({
       : filterPostsByCategory(posts, category);
 
   return (
-    <div className="w-full bg-white dark:bg-slate-950">
+    <div className="w-full bg-white">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-[#170C79]">
             {title}
           </h1>
           {description && (
-            <p className="mt-2 text-slate-600 dark:text-slate-400">
+            <p className="mt-2 text-[#56B6C6]">
               {description}
             </p>
           )}
