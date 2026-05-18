@@ -161,16 +161,31 @@ To replace sample content with custom data:
 
 - **TypeScript**: ✅ PASS
 - **ESLint**: ✅ PASS
-- **Build**: ✅ PASS (8.4s)
-- **Routes**: ✅ 11 routes cloned and tested
+- **Build**: ✅ PASS (9.5s)
+- **Routes**: 11 routes created (3 fully cloned, 8 partial)
+
+## Route Status
+
+### Fully Cloned (Visual Match)
+- ✅ `/` — Homepage with post grid
+- ✅ `/best-cosplayer` — Cosplayer list with rank numbers
+- ✅ `/explore-categories` — Category grid showcase
+- ✅ `/mihara-3` — Detail page with metadata, downloads, gallery
+
+### Partial (Generic Layout)
+- ⚠️ `/category/*` — Using generic CategoryPageLayout (needs visual refinement)
+- ⚠️ `/24-hours`, `/3-day`, `/7-day` — Using generic layout (needs ranking-specific style)
 
 ## Known Limitations
 
-1. **Adult Categories**: `/category/nude/` and `/category/cosplay-ero/` use safe placeholder layout. Explicit media not committed to repository.
-2. **Sample Data**: Using placeholder post data. Replace with actual content in `src/data/posts.ts`.
-3. **Images**: Using placeholder image paths. Add actual images to `public/images/tunacosplay/`.
-4. **Pagination**: Not yet implemented. Can be added if needed.
-5. **Search**: Not yet implemented. Can be added if needed.
+1. **Partial Visual Cloning**: Category and ranking pages use generic layouts. Original site may have different visual styles, card layouts, or metadata display that haven't been captured yet.
+2. **Adult Categories**: `/category/nude/` and `/category/cosplay-ero/` use safe placeholder layout. Explicit media not committed to repository.
+3. **Sample Data**: Using placeholder post data. Replace with actual content in `src/data/posts.ts`.
+4. **Images**: Using placeholder image paths. Add actual images to `public/images/tunacosplay/`.
+5. **Pagination**: Not yet implemented. Can be added if needed.
+6. **Search**: Not yet implemented. Can be added if needed.
+7. **Download Links**: Detail page download buttons are placeholders (no actual download functionality).
+8. **Ranking Data**: Ranking pages show generic post grid instead of ranked list with view counts/stats.
 
 ## Documentation
 

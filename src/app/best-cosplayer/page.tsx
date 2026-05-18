@@ -1,10 +1,5 @@
-import { CategoryPageLayout } from '@/components/category/CategoryPageLayout';
+import { BestCosplayerLayout } from '@/components/ranking/BestCosplayerLayout';
 
 export default function BestCosplayerPage() {
-  return (
-    <CategoryPageLayout
-      title="Best Cosplayer"
-      description="Top cosplayers ranked by popularity"
-    />
-  );
+  return <BestCosplayerLayout />;
 }

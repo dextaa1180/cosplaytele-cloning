@@ -5,16 +5,16 @@
 | Original URL | Next.js Route | Page Type | Status | Notes |
 |---|---|---|---|---|
 | https://cosplaytele.com/ | `/` | homepage | cloned | Grid layout with post cards |
-| https://cosplaytele.com/category/video-cosplayy/ | `/category/video-cosplayy` | category | cloned | Video cosplay category listing |
-| https://cosplaytele.com/explore-categories/ | `/explore-categories` | static | cloned | Category exploration page |
-| https://cosplaytele.com/best-cosplayer/ | `/best-cosplayer` | ranking | cloned | Best cosplayer ranking |
-| https://cosplaytele.com/24-hours/ | `/24-hours` | ranking | cloned | Top 24 hours ranking |
-| https://cosplaytele.com/3-day/ | `/3-day` | ranking | cloned | Top 3 days ranking |
-| https://cosplaytele.com/7-day/ | `/7-day` | ranking | cloned | Top 7 days ranking |
-| https://cosplaytele.com/category/nude/ | `/category/nude` | category | cloned | Nude category (safe placeholder) |
-| https://cosplaytele.com/category/cosplay-ero/ | `/category/cosplay-ero` | category | cloned | Cosplay ero category (safe placeholder) |
-| https://cosplaytele.com/category/cosplay/ | `/category/cosplay` | category | cloned | Cosplay category listing |
-| https://cosplaytele.com/mihara-3/ | `/mihara-3` | detail | cloned | Detail post page |
+| https://cosplaytele.com/category/video-cosplayy/ | `/category/video-cosplayy` | category | partial | Generic category layout (needs visual refinement) |
+| https://cosplaytele.com/explore-categories/ | `/explore-categories` | static | cloned | Category grid showcase |
+| https://cosplaytele.com/best-cosplayer/ | `/best-cosplayer` | ranking | cloned | Cosplayer list with rank numbers |
+| https://cosplaytele.com/24-hours/ | `/24-hours` | ranking | partial | Generic category layout (needs ranking style) |
+| https://cosplaytele.com/3-day/ | `/3-day` | ranking | partial | Generic category layout (needs ranking style) |
+| https://cosplaytele.com/7-day/ | `/7-day` | ranking | partial | Generic category layout (needs ranking style) |
+| https://cosplaytele.com/category/nude/ | `/category/nude` | category | partial | Generic category layout (safe placeholder) |
+| https://cosplaytele.com/category/cosplay-ero/ | `/category/cosplay-ero` | category | partial | Generic category layout (safe placeholder) |
+| https://cosplaytele.com/category/cosplay/ | `/category/cosplay` | category | partial | Generic category layout (needs visual refinement) |
+| https://cosplaytele.com/mihara-3/ | `/mihara-3` | detail | cloned | Detail with metadata, downloads, gallery |
 
 ## Shared Components
 
