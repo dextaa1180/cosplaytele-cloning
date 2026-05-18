@@ -178,3 +178,155 @@ export function CategoryPageLayout({ title, description, category }) {
 
 ### Lesson Learned
 Component hierarchy matters. Presentation components should be dumb (props in, UI out). Layout components should be smart (know context, filter data, render structure). Page components should be thin (just assembly).
+
+---
+
+## Pattern: Navbar Dropdowns Not Working
+
+### Symptoms
+- Dropdown buttons visible but clicking does nothing
+- Dropdown menus never appear
+- No console errors in browser
+- Build passes but feature doesn't work
+
+### Root Cause
+- Missing event handlers (onClick not properly wired)
+- Missing state management for open/closed state
+- Missing click-outside detection
+- Missing escape key handler
+- Z-index too low (dropdown hidden behind other elements)
+- Parent elements with overflow-hidden clipping dropdown
+- Missing pointer-events-auto on dropdown panels
+
+### Best Fix
+1. **Use proper React state management** - useState for tracking which dropdown is open
+2. **Add click-outside detection** - useEffect with document event listener
+3. **Add escape key handler** - useEffect with keydown event listener
+4. **Use high z-index** - z-[9999] or equivalent
+5. **Add pointer-events-auto** - ensure dropdown panels are clickable
+6. **Use button type="button"** - prevent form submission behavior
+7. **Add aria attributes** - aria-expanded, aria-haspopup for accessibility
+8. **Close dropdown on item click** - call closeDropdown in Link onClick
+9. **Close one dropdown when another opens** - toggle logic in handleDropdownToggle
+
+### Commands
+```typescript
+// CORRECT: Robust dropdown implementation
+const [openDropdown, setOpenDropdown] = useState<'top' | 'level' | null>(null);
+
+const handleDropdownToggle = (dropdown: 'top' | 'level') => {
+  setOpenDropdown(openDropdown === dropdown ? null : dropdown);
+};
+
+const closeDropdown = () => {
+  setOpenDropdown(null);
+};
+
+// Click outside detection
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (navRef.current && !navRef.current.contains(event.target as Node)) {
+      closeDropdown();
+    }
+  };
+  if (openDropdown) {
+    document.addEventListener('mousedown', handleClickOutside);
+  }
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, [openDropdown]);
+
+// Escape key handler
+useEffect(() => {
+  const handleEscape = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      closeDropdown();
+    }
+  };
+  if (openDropdown) {
+    document.addEventListener('keydown', handleEscape);
+  }
+  return () => {
+    document.removeEventListener('keydown', handleEscape);
+  };
+}, [openDropdown]);
+```
+
+### Files Usually Involved
+- Navbar component (src/components/layout/Navbar.tsx)
+- Layout components that might clip dropdowns
+
+### Prevention
+- **Manual browser testing is MANDATORY** - Build passing does NOT mean dropdowns work
+- **Test all interactive features in browser** - Click, hover, keyboard navigation
+- **Do not assume build success = feature success** - Interactive UI requires manual verification
+- **Use React DevTools** - Verify state changes when clicking
+- **Check z-index hierarchy** - Ensure dropdowns appear above all content
+- **Avoid Bootstrap + Tailwind conflicts** - Use one styling system consistently
+
+### Lesson Learned
+Build tools (typecheck, lint, build) only verify syntax and types. They cannot verify that interactive UI features work correctly. Dropdowns, modals, forms, and other interactive elements MUST be manually tested in a browser. Never claim a feature works without browser testing.
+
+---
+
+## Pattern: Video Category Filtering Wrong
+
+### Symptoms
+- Video Cosplay page only shows posts with category="video-cosplayy"
+- Posts from other categories with videos are missing
+- Filter logic is too restrictive
+
+### Root Cause
+- Using category-based filtering for video pages
+- Video pages should filter by videoCount > 0, not by category
+- Reusing category filter logic without considering special cases
+
+### Best Fix
+1. **Create dedicated video filter helper** - filterPostsWithVideo(posts)
+2. **Add filterMode prop to layout** - 'category' | 'video'
+3. **Use appropriate filter based on mode** - category filter for normal categories, video filter for video pages
+4. **Keep normal category pages unchanged** - only video page uses special filtering
+
+### Commands
+```typescript
+// Add helper in src/lib/posts.ts
+export function filterPostsWithVideo(posts: Post[]): Post[] {
+  return posts.filter((post) => post.videoCount > 0);
+}
+
+// Update CategoryPageLayout
+interface CategoryPageLayoutProps {
+  title: string;
+  description?: string;
+  category: string;
+  filterMode?: 'category' | 'video';
+}
+
+const filteredPosts =
+  filterMode === 'video'
+    ? filterPostsWithVideo(posts)
+    : filterPostsByCategory(posts, category);
+
+// Update video page
+<CategoryPageLayout
+  title="Video Cosplay"
+  description="Explore amazing video cosplay collections"
+  category="video-cosplayy"
+  filterMode="video"
+/>
+```
+
+### Files Usually Involved
+- src/lib/posts.ts (filter helpers)
+- src/components/category/CategoryPageLayout.tsx (layout with filtering)
+- src/app/category/video-cosplayy/page.tsx (video page)
+
+### Prevention
+- **Understand the business logic** - Video pages show all posts with videos, not just video category
+- **Don't blindly reuse filters** - Different pages may need different filtering logic
+- **Add filterMode or similar props** - Make filtering behavior explicit and configurable
+- **Test with realistic data** - Ensure posts from multiple categories appear on video page
+
+### Lesson Learned
+Category-based filtering is not appropriate for all pages. Video pages, search results, and tag pages may need different filtering logic. Make filtering behavior explicit through props or separate components rather than assuming one filter fits all.

@@ -26,7 +26,7 @@
 
 ### Category Pages
 - `/category/cosplay` — Cosplay category
-- `/category/video-cosplayy` — Video cosplay category
+- `/category/video-cosplayy` — Video cosplay (all posts with videoCount > 0)
 - `/category/cosplay-ero` — Cosplay ero category (safe placeholder)
 - `/category/nude` — Nude category (safe placeholder)
 
@@ -103,8 +103,9 @@ docs/
 - ✅ Next.js Image optimization
 - ✅ TypeScript for type safety
 - ✅ ESLint + Prettier configured
-- ✅ Multi-page routing with navbar dropdowns
+- ✅ Multi-page routing with working Tailwind dropdowns
 - ✅ Category pages with reusable layout
+- ✅ Video filtering by videoCount (not just category)
 - ✅ Ranking pages
 - ✅ Detail page for individual posts
 - ✅ Explore categories page
@@ -177,7 +178,7 @@ To replace sample content with custom data:
 
 ### Partial (Generic Layout)
 - ⚠️ `/category/cosplay` — Using generic CategoryPageLayout
-- ⚠️ `/category/video-cosplayy` — Using generic CategoryPageLayout
+- ⚠️ `/category/video-cosplayy` — Using generic CategoryPageLayout (filters by videoCount > 0)
 - ⚠️ `/category/cosplay-ero` — Using generic CategoryPageLayout (safe placeholder)
 - ⚠️ `/category/nude` — Using generic CategoryPageLayout (safe placeholder)
 
