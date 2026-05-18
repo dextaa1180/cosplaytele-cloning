@@ -2,20 +2,25 @@
 
 import { posts } from '@/data/posts';
 import { PostGrid } from '@/components/PostGrid';
-import { filterPostsByCategory } from '@/lib/posts';
+import { filterPostsByCategory, filterPostsWithVideo } from '@/lib/posts';
 
 interface CategoryPageLayoutProps {
   title: string;
   description?: string;
   category: string;
+  filterMode?: 'category' | 'video';
 }
 
 export function CategoryPageLayout({
   title,
   description,
   category,
+  filterMode = 'category',
 }: CategoryPageLayoutProps) {
-  const filteredPosts = filterPostsByCategory(posts, category);
+  const filteredPosts =
+    filterMode === 'video'
+      ? filterPostsWithVideo(posts)
+      : filterPostsByCategory(posts, category);
 
   return (
     <div className="w-full bg-white dark:bg-slate-950">

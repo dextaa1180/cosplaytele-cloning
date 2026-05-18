@@ -8,6 +8,10 @@ export function filterPostsByCategory(posts: Post[], category: string): Post[] {
   return posts.filter((post) => post.category === category);
 }
 
+export function filterPostsWithVideo(posts: Post[]): Post[] {
+  return posts.filter((post) => post.videoCount > 0);
+}
+
 export function sortPostsByViews24h(posts: Post[]): Post[] {
   return [...posts].sort((a, b) => b.views24h - a.views24h);
 }

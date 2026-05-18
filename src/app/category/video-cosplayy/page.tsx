@@ -6,6 +6,7 @@ export default function VideoCosplayPage() {
       title="Video Cosplay"
       description="Explore amazing video cosplay collections"
       category="video-cosplayy"
+      filterMode="video"
     />
   );
 }
