@@ -1,32 +1,36 @@
-# Tunacosplay — Website Clone Project
+# cosplaytele-cloning
 
-## Project Overview
+**Tunacosplay** — A clean Next.js clone of https://cosplaytele.com/ homepage structure.
 
-**Tunacosplay** is a clean Next.js clone of https://cosplaytele.com/ homepage structure. Built with modern web standards, Separation of Concerns, and ready for custom content replacement.
-
-## Project Details
+## Project Info
 
 - **Target Website**: https://cosplaytele.com/
 - **Project Name**: Tunacosplay
+- **Repository**: https://github.com/dextaa1180/cosplaytele-cloning
 - **Framework**: Next.js 14+ with TypeScript
 - **Styling**: Tailwind CSS
-- **Build Status**: ✅ PASS (typecheck, lint, build)
-- **Repository**: https://github.com/dextaa1180/cosplaytele-cloning
+- **Status**: ✅ Build PASS
 
-## Architecture
+## Tech Stack
 
-### Separation of Concerns (SOC)
+- **Next.js 14+** — React framework
+- **TypeScript** — Type safety
+- **Tailwind CSS** — Utility-first styling
+- **ESLint** — Code quality
+- **Prettier** — Code formatting
+
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── page.tsx              # Homepage route (assembly only)
+│   ├── page.tsx              # Homepage route
 │   └── [slug]/page.tsx       # Detail page (structure ready)
 ├── components/
 │   ├── PostCard.tsx          # Reusable card component
 │   └── PostGrid.tsx          # Grid container
 ├── data/
-│   └── posts.ts              # Post data + TypeScript types
+│   └── posts.ts              # Post data + types
 ├── lib/
 │   └── cn.ts                 # Utility functions
 └── types/
@@ -37,49 +41,44 @@ public/
 └── ...
 
 docs/
-├── research/tunacosplay/
-│   ├── ROUTES.md             # Route mapping
-│   ├── PAGE_TOPOLOGY.md      # Page structure
-│   ├── DESIGN_TOKENS.md      # Design system
-│   ├── QA.md                 # QA report
-│   └── components/
-│       └── PostCard.spec.md  # Component specification
-└── self-improvement/
-    ├── ERROR_LOG.md          # Error tracking
-    ├── FIX_PATTERNS.md       # Common fixes
-    ├── DECISIONS.md          # Architecture decisions
-    └── CHECKLIST.md          # Project checklist
+├── research/tunacosplay/     # Design research
+└── self-improvement/         # Error logs & patterns
 ```
 
-## Key Features
+## Features
 
 - ✅ Responsive grid layout (4 columns desktop, 2 tablet, 1 mobile)
-- ✅ Dark mode support (Tailwind dark: classes)
+- ✅ Dark mode support
 - ✅ Hover animations and transitions
 - ✅ Next.js Image optimization
 - ✅ TypeScript for type safety
 - ✅ ESLint + Prettier configured
-- ✅ Self-improvement documentation
 
-## Build & Development
+## Getting Started
 
 ### Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### Development Server
+
 ```bash
 npm run dev
 ```
 
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
 ### Build for Production
+
 ```bash
 npm run build
 npm start
 ```
 
 ### Quality Checks
+
 ```bash
 npm run lint      # ESLint
 npm run typecheck # TypeScript
@@ -103,12 +102,6 @@ To replace sample content with custom data:
    npm run build
    ```
 
-## Documentation
-
-- **Research**: `docs/research/tunacosplay/` — Design tokens, page topology, component specs
-- **QA Report**: `docs/research/tunacosplay/QA.md` — Build status and visual QA results
-- **Self-Improvement**: `docs/self-improvement/` — Error log, fix patterns, decisions, checklist
-
 ## Build Status
 
 - **TypeScript**: ✅ PASS
@@ -116,6 +109,12 @@ To replace sample content with custom data:
 - **Build**: ✅ PASS (8.6s)
 - **Desktop QA**: ✅ PASS (1440px)
 - **Mobile QA**: ✅ PASS (390px)
+
+## Documentation
+
+- **Research**: `docs/research/tunacosplay/` — Design tokens, page topology, component specs
+- **QA Report**: `docs/research/tunacosplay/QA.md` — Build status and visual QA results
+- **Self-Improvement**: `docs/self-improvement/` — Error log, fix patterns, decisions
 
 ## Next Steps
 

@@ -1,27 +1,24 @@
 {
-  "name": "ai-website-clone-template",
-  "version": "0.3.1",
+  "name": "cosplaytele-cloning",
+  "version": "1.0.0",
   "private": true,
-  "description": "Clone any website into a clean, modern Next.js codebase using AI coding agents",
-  "author": "JCodesMore",
+  "description": "Tunacosplay website clone built with Next.js",
+  "author": "Ruly",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JCodesMore/ai-website-cloner-template.git"
+    "url": "https://github.com/dextaa1180/cosplaytele-cloning.git"
   },
-  "homepage": "https://github.com/JCodesMore/ai-website-cloner-template",
+  "homepage": "https://github.com/dextaa1180/cosplaytele-cloning",
   "bugs": {
-    "url": "https://github.com/JCodesMore/ai-website-cloner-template/issues"
+    "url": "https://github.com/dextaa1180/cosplaytele-cloning/issues"
   },
   "keywords": [
-    "claude-code",
+    "cosplay",
     "website-clone",
-    "reverse-engineering",
     "nextjs",
-    "ai",
-    "template",
     "tailwindcss",
-    "shadcn-ui"
+    "tunacosplay"
   ],
   "engines": {
     "node": ">=24"
