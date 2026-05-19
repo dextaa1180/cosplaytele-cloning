@@ -1,6 +1,3 @@
-'use client';
-
-import { posts } from '@/data/posts';
 import { PostGrid } from '@/components/PostGrid';
 import {
   sortPostsByViews24h,
@@ -8,17 +5,20 @@ import {
   sortPostsByViews7d,
   getTopPosts,
 } from '@/lib/posts';
+import type { Post } from '@/types';
 
 interface RankingPageLayoutProps {
   title: string;
   description: string;
   period: '24h' | '3d' | '7d';
+  posts: Post[];
 }
 
 export function RankingPageLayout({
   title,
   description,
   period,
+  posts,
 }: RankingPageLayoutProps) {
   // Sort posts based on period
   let sortedPosts = posts;

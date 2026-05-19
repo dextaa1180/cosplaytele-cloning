@@ -9,11 +9,13 @@ type PostRow = {
   description: string | null;
   file_size: string | null;
   id: string;
+  hero_image_url: string | null;
   photo_count: number;
   slug: string;
   source: string;
   status: 'draft' | 'published' | 'archived';
   tags: string[];
+  thumbnail_url: string | null;
   title: string;
   unzip_password: string | null;
   updated_at: string;
@@ -23,9 +25,13 @@ type PostRow = {
 type PreviewMediaRow = {
   alt_text: string | null;
   duration: string | null;
+  height: number | null;
   id: string;
   media_type: 'image' | 'video';
+  poster_url: string | null;
   sort_order: number;
+  url: string | null;
+  width: number | null;
 };
 
 type DownloadLinkRow = {
@@ -47,7 +53,7 @@ export async function listSupabaseDrafts() {
   const { data, error } = await supabase
     .from('posts')
     .select(
-      'id, slug, title, cosplayer, character, source, category, tags, photo_count, video_count, file_size, unzip_password, description, status, created_at, updated_at, preview_media(id, media_type, alt_text, duration, sort_order), download_links(provider, url)',
+      'id, slug, title, cosplayer, character, source, category, tags, photo_count, video_count, thumbnail_url, hero_image_url, file_size, unzip_password, description, status, created_at, updated_at, preview_media(id, media_type, url, poster_url, alt_text, width, height, duration, sort_order), download_links(provider, url)',
     )
     .eq('status', 'draft')
     .order('updated_at', { ascending: false });
@@ -76,6 +82,8 @@ export async function upsertSupabaseDraft(draft: AdminPostDraft) {
     tags: draft.tags,
     photo_count: draft.photoCount,
     video_count: draft.videoCount,
+    thumbnail_url: draft.thumbnailUrl || null,
+    hero_image_url: draft.heroImageUrl || null,
     file_size: draft.fileSize || null,
     unzip_password: draft.unzipPassword || 'cosplaytele',
     description: draft.description || null,
@@ -107,7 +115,11 @@ export async function upsertSupabaseDraft(draft: AdminPostDraft) {
         id: media.id,
         post_id: draft.id,
         media_type: media.type,
+        url: media.url || null,
+        poster_url: media.posterUrl || null,
         alt_text: media.alt || null,
+        width: media.width || null,
+        height: media.height || null,
         duration: media.duration || null,
         sort_order: media.sortOrder,
       })),
@@ -173,6 +185,8 @@ function rowToDraft(row: DraftPostRow): AdminPostDraft {
     tags: row.tags as AdminPostDraft['tags'],
     photoCount: row.photo_count,
     videoCount: row.video_count,
+    thumbnailUrl: row.thumbnail_url ?? '',
+    heroImageUrl: row.hero_image_url ?? '',
     fileSize: row.file_size ?? '',
     unzipPassword: row.unzip_password ?? 'cosplaytele',
     description: row.description ?? '',
@@ -189,7 +203,11 @@ function rowToDraft(row: DraftPostRow): AdminPostDraft {
         type: media.media_type,
         fileName: media.alt_text ?? media.id,
         fileSize: 0,
+        url: media.url ?? undefined,
+        posterUrl: media.poster_url ?? undefined,
         alt: media.alt_text ?? '',
+        width: media.width ?? undefined,
+        height: media.height ?? undefined,
         duration: media.duration ?? undefined,
         sortOrder: media.sort_order,
         storageStatus: 'local-only',

@@ -1,9 +1,12 @@
 import Link from 'next/link';
 import { ImageIcon, Plus, Video } from 'lucide-react';
 import { AdminDraftList } from '@/components/admin/AdminDraftList';
-import { posts } from '@/data/posts';
+import { getPublishedPosts } from '@/lib/published-posts';
 
-export default function AdminDashboardPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function AdminDashboardPage() {
+  const posts = await getPublishedPosts();
   const totalPhotos = posts.reduce((sum, post) => sum + post.photoCount, 0);
   const totalVideos = posts.reduce((sum, post) => sum + post.videoCount, 0);
   const previewMediaCount = posts.reduce(

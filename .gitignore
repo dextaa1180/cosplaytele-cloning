@@ -48,4 +48,5 @@ next-env.d.ts
 # Local temp files
 temp/
 .data/
+public/uploads/
 docs/design-references/cosplay-tele/*.png

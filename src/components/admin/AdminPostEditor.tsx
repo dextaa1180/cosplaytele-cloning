@@ -8,14 +8,17 @@ import {
   GripVertical,
   LinkIcon,
   Save,
+  Send,
   Upload,
 } from 'lucide-react';
 import { Category, Tag } from '@/types';
 import {
   AdminDraftMedia,
   AdminPostDraft,
+  publishAdminPost,
   saveAdminDraft,
   slugifyTitle,
+  uploadAdminMedia,
 } from '@/lib/admin-drafts';
 import { cn } from '@/lib/utils';
 
@@ -44,6 +47,8 @@ export function AdminPostEditor() {
   const [description, setDescription] = useState('');
   const [thumbnailName, setThumbnailName] = useState('');
   const [heroName, setHeroName] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [heroImageUrl, setHeroImageUrl] = useState('');
   const [downloadLinks, setDownloadLinks] = useState({
     mediafire: '',
     telegram: '',
@@ -54,6 +59,8 @@ export function AdminPostEditor() {
   const [validationMessages, setValidationMessages] = useState<string[]>([]);
   const [saveMessage, setSaveMessage] = useState('');
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const counts = useMemo(
     () => ({
@@ -69,10 +76,12 @@ export function AdminPostEditor() {
       slug,
       category,
       tags: selectedTags,
+      thumbnailUrl,
+      heroImageUrl,
       previewMedia: previewMedia.map(toStoredMedia),
       downloadLinks,
     }),
-    [category, downloadLinks, previewMedia, selectedTags, slug, title],
+    [category, downloadLinks, heroImageUrl, previewMedia, selectedTags, slug, thumbnailUrl, title],
   );
 
   const handleTitleChange = (value: string) => {
@@ -83,30 +92,96 @@ export function AdminPostEditor() {
     clearFeedback();
   };
 
-  const handlePreviewFiles = (event: ChangeEvent<HTMLInputElement>) => {
+  const handlePreviewFiles = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
-    const nextMedia = files
-      .filter((file) => file.type.startsWith('image/') || file.type.startsWith('video/'))
-      .map<DraftMedia>((file, index) => {
-        const type = file.type.startsWith('video/') ? 'video' : 'image';
-        const objectUrl = URL.createObjectURL(file);
+    const mediaFiles = files.filter(
+      (file) => file.type.startsWith('image/') || file.type.startsWith('video/'),
+    );
 
-        return {
-          id: `${file.name}-${file.lastModified}-${index}`,
-          type,
-          fileName: file.name,
-          fileSize: file.size,
-          alt: file.name.replace(/\.[^.]+$/, ''),
-          duration: type === 'video' ? 'pending' : undefined,
-          sortOrder: previewMedia.length + index + 1,
-          storageStatus: 'local-only',
-          objectUrl,
-        };
+    if (mediaFiles.length === 0) {
+      event.target.value = '';
+      return;
+    }
+
+    setUploading(true);
+    clearFeedback();
+
+    try {
+      const uploadedMedia = await Promise.all(
+        mediaFiles.map(async (file, index) => {
+          const type = file.type.startsWith('video/') ? 'video' : 'image';
+          const objectUrl = URL.createObjectURL(file);
+          const uploaded = await uploadAdminMedia(file, {
+            draftId,
+            kind: 'preview',
+            slug,
+          });
+
+          return {
+            id: createDraftId(),
+            type,
+            fileName: file.name,
+            fileSize: file.size,
+            url: uploaded.url,
+            alt: file.name.replace(/\.[^.]+$/, ''),
+            duration: type === 'video' ? 'preview' : undefined,
+            sortOrder: previewMedia.length + index + 1,
+            storageStatus: 'uploaded',
+            objectUrl,
+          } satisfies DraftMedia;
+        }),
+      );
+
+      setPreviewMedia((current) => [...current, ...uploadedMedia]);
+      setSaveMessage(`${uploadedMedia.length} preview media uploaded.`);
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : 'Preview media could not be uploaded.');
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleCoverUpload = async (
+    file: File | undefined,
+    kind: 'thumbnail' | 'hero',
+  ) => {
+    if (!file) {
+      if (kind === 'thumbnail') {
+        setThumbnailName('');
+        setThumbnailUrl('');
+      } else {
+        setHeroName('');
+        setHeroImageUrl('');
+      }
+      clearFeedback();
+      return;
+    }
+
+    setUploading(true);
+    clearFeedback();
+
+    try {
+      const uploaded = await uploadAdminMedia(file, {
+        draftId,
+        kind,
+        slug,
       });
 
-    setPreviewMedia((current) => [...current, ...nextMedia]);
-    clearFeedback();
-    event.target.value = '';
+      if (kind === 'thumbnail') {
+        setThumbnailName(file.name);
+        setThumbnailUrl(uploaded.url);
+      } else {
+        setHeroName(file.name);
+        setHeroImageUrl(uploaded.url);
+      }
+
+      setSaveMessage(`${kind === 'thumbnail' ? 'Thumbnail' : 'Hero image'} uploaded.`);
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : 'Cover media could not be uploaded.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const toggleTag = (tag: Tag) => {
@@ -141,26 +216,49 @@ export function AdminPostEditor() {
   };
 
   const handleValidate = () => {
-    const messages = validateDraft();
+    const messages = validateDraft('draft');
     setValidationMessages(messages);
     setSaveMessage(messages.length === 0 ? 'Draft schema is valid.' : '');
     return messages.length === 0;
   };
 
   const handleSaveDraft = async () => {
-    const messages = validateDraft();
+    const messages = validateDraft('draft');
     setValidationMessages(messages);
     setSaving(true);
 
     try {
-      await saveAdminDraft(buildDraft());
+      await saveAdminDraft(buildDraft('draft'));
       setSaveMessage(
         messages.length > 0
           ? `Draft saved with ${messages.length} validation item${messages.length === 1 ? '' : 's'} remaining.`
           : 'Draft saved. It will appear on the admin dashboard.',
       );
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : 'Draft could not be saved.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePublishPost = async () => {
+    const messages = validateDraft('publish');
+    setValidationMessages(messages);
+
+    if (messages.length > 0) {
+      setSaveMessage('');
+      return;
+    }
+
+    setPublishing(true);
+
+    try {
+      await publishAdminPost(buildDraft('published'));
+      setSaveMessage('Post published. It is now available on the home page.');
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : 'Post could not be published.');
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -169,7 +267,7 @@ export function AdminPostEditor() {
     setSaveMessage('');
   };
 
-  const buildDraft = (): AdminPostDraft => {
+  const buildDraft = (status: AdminPostDraft['status']): AdminPostDraft => {
     const now = new Date().toISOString();
 
     return {
@@ -183,18 +281,20 @@ export function AdminPostEditor() {
       tags: selectedTags,
       photoCount,
       videoCount,
+      thumbnailUrl,
+      heroImageUrl,
       fileSize,
       unzipPassword,
       description,
       downloadLinks,
       previewMedia: previewMedia.map(toStoredMedia),
-      status: 'draft',
+      status,
       createdAt,
       updatedAt: now,
     };
   };
 
-  const validateDraft = () => {
+  const validateDraft = (mode: 'draft' | 'publish') => {
     const messages: string[] = [];
 
     if (!title.trim()) messages.push('Title is required.');
@@ -202,7 +302,12 @@ export function AdminPostEditor() {
     if (!cosplayer.trim()) messages.push('Cosplayer is required.');
     if (!character.trim()) messages.push('Character is required.');
     if (!source.trim()) messages.push('Source is required.');
-    if (!thumbnailName) messages.push('Thumbnail image should be selected.');
+    if (!thumbnailName && !thumbnailUrl.trim()) {
+      messages.push('Thumbnail image or thumbnail URL should be selected.');
+    }
+    if (mode === 'publish' && !thumbnailUrl.trim()) {
+      messages.push('Thumbnail URL is required before publishing so the home page can render the post.');
+    }
     if (previewMedia.length === 0) {
       messages.push('Add at least one preview photo or video.');
     }
@@ -234,11 +339,20 @@ export function AdminPostEditor() {
             <button
               type="button"
               onClick={() => void handleSaveDraft()}
-              disabled={saving}
+              disabled={saving || publishing || uploading}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
             >
               <Save className="h-4 w-4" aria-hidden="true" />
               {saving ? 'Saving...' : 'Save Draft'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handlePublishPost()}
+              disabled={saving || publishing || uploading}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <Send className="h-4 w-4" aria-hidden="true" />
+              {publishing ? 'Posting...' : 'Post'}
             </button>
           </div>
         </div>
@@ -411,20 +525,40 @@ export function AdminPostEditor() {
                   label="Thumbnail"
                   accept="image/*"
                   fileName={thumbnailName}
-                  onChange={(file) => {
-                    setThumbnailName(file?.name ?? '');
-                    clearFeedback();
-                  }}
+                  disabled={uploading}
+                  onChange={(file) => void handleCoverUpload(file, 'thumbnail')}
                 />
                 <UploadBox
                   label="Hero Image"
                   accept="image/*"
                   fileName={heroName}
-                  onChange={(file) => {
-                    setHeroName(file?.name ?? '');
-                    clearFeedback();
-                  }}
+                  disabled={uploading}
+                  onChange={(file) => void handleCoverUpload(file, 'hero')}
                 />
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <Field label="Thumbnail URL">
+                  <input
+                    value={thumbnailUrl}
+                    onChange={(event) => {
+                      setThumbnailUrl(event.target.value);
+                      clearFeedback();
+                    }}
+                    className={inputClassName}
+                    placeholder="/images/tunacosplay/example.svg"
+                  />
+                </Field>
+                <Field label="Hero Image URL">
+                  <input
+                    value={heroImageUrl}
+                    onChange={(event) => {
+                      setHeroImageUrl(event.target.value);
+                      clearFeedback();
+                    }}
+                    className={inputClassName}
+                    placeholder="Optional, falls back to thumbnail"
+                  />
+                </Field>
               </div>
             </section>
 
@@ -440,12 +574,13 @@ export function AdminPostEditor() {
                 </div>
                 <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800">
                   <Upload className="h-4 w-4" aria-hidden="true" />
-                  Add Media
+                  {uploading ? 'Uploading...' : 'Add Media'}
                   <input
                     type="file"
                     accept="image/*,video/*"
                     multiple
-                    onChange={handlePreviewFiles}
+                    disabled={uploading}
+                    onChange={(event) => void handlePreviewFiles(event)}
                     className="sr-only"
                   />
                 </label>
@@ -478,7 +613,7 @@ export function AdminPostEditor() {
                           {media.fileName}
                         </p>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          {media.type} / {formatBytes(media.fileSize)} / order {media.sortOrder}
+                          {media.type} / {formatBytes(media.fileSize)} / order {media.sortOrder} / {media.storageStatus}
                         </p>
                       </div>
                       <button
@@ -535,7 +670,7 @@ export function AdminPostEditor() {
                 <StatusRow label="Tags" value={selectedTags.length.toString()} />
                 <StatusRow label="Preview Images" value={counts.images.toString()} />
                 <StatusRow label="Preview Videos" value={counts.videos.toString()} />
-                <StatusRow label="Thumbnail" value={thumbnailName ? 'selected' : 'missing'} />
+                <StatusRow label="Thumbnail" value={thumbnailUrl ? 'uploaded' : 'missing'} />
               </dl>
               {validationMessages.length > 0 && (
                 <div className="mt-5 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
@@ -600,14 +735,28 @@ function Field({ children, label }: FieldProps) {
 
 interface UploadBoxProps {
   accept: string;
+  disabled?: boolean;
   fileName: string;
   label: string;
   onChange: (file: File | undefined) => void;
 }
 
-function UploadBox({ accept, fileName, label, onChange }: UploadBoxProps) {
+function UploadBox({
+  accept,
+  disabled = false,
+  fileName,
+  label,
+  onChange,
+}: UploadBoxProps) {
   return (
-    <label className="flex h-28 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 text-center transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-slate-900">
+    <label
+      className={cn(
+        'flex h-28 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 text-center transition dark:border-slate-700 dark:bg-slate-950',
+        disabled
+          ? 'cursor-not-allowed opacity-70'
+          : 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900',
+      )}
+    >
       <Upload className="h-5 w-5 text-slate-500" aria-hidden="true" />
       <span className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
         {label}
@@ -620,6 +769,7 @@ function UploadBox({ accept, fileName, label, onChange }: UploadBoxProps) {
       <input
         type="file"
         accept={accept}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.files?.[0])}
         className="sr-only"
       />
@@ -659,6 +809,10 @@ function toStoredMedia(media: DraftMedia): AdminDraftMedia {
     duration: media.duration,
     sortOrder: media.sortOrder,
     storageStatus: media.storageStatus,
+    url: media.url,
+    posterUrl: media.posterUrl,
+    width: media.width,
+    height: media.height,
   };
 }
 

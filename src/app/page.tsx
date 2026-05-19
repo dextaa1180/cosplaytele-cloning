@@ -1,7 +1,11 @@
-import { posts } from '@/data/posts';
 import { PostGrid } from '@/components/PostGrid';
+import { getPublishedPosts } from '@/lib/published-posts';
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const posts = await getPublishedPosts();
+
   return (
     <div className="w-full bg-white dark:bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

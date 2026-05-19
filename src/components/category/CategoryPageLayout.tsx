@@ -1,14 +1,13 @@
-'use client';
-
-import { posts } from '@/data/posts';
 import { PostGrid } from '@/components/PostGrid';
 import { filterPostsByCategory, filterPostsWithVideo } from '@/lib/posts';
+import type { Post } from '@/types';
 
 interface CategoryPageLayoutProps {
   title: string;
   description?: string;
   category: string;
   filterMode?: 'category' | 'video';
+  posts: Post[];
 }
 
 export function CategoryPageLayout({
@@ -16,6 +15,7 @@ export function CategoryPageLayout({
   description,
   category,
   filterMode = 'category',
+  posts,
 }: CategoryPageLayoutProps) {
   const filteredPosts =
     filterMode === 'video'

@@ -1,5 +1,5 @@
 import { DetailPostLayout } from '@/components/detail/DetailPostLayout';
-import { posts } from '@/data/posts';
+import { getPublishedPostBySlug, getPublishedPosts } from '@/lib/published-posts';
 
 interface DetailPageProps {
   params: Promise<{
@@ -7,7 +7,11 @@ interface DetailPageProps {
   }>;
 }
 
-export function generateStaticParams() {
+export const dynamic = 'force-dynamic';
+
+export async function generateStaticParams() {
+  const posts = await getPublishedPosts();
+
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -15,7 +19,7 @@ export function generateStaticParams() {
 
 export default async function DetailPage({ params }: DetailPageProps) {
   const { slug } = await params;
-  const post = posts.find((p) => p.slug === slug);
+  const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
     return (

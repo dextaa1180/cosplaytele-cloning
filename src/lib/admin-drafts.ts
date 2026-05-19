@@ -5,10 +5,14 @@ export interface AdminDraftMedia {
   type: 'image' | 'video';
   fileName: string;
   fileSize: number;
+  url?: string;
+  posterUrl?: string;
   alt: string;
+  width?: number;
+  height?: number;
   duration?: string;
   sortOrder: number;
-  storageStatus: 'local-only';
+  storageStatus: 'local-only' | 'uploaded';
 }
 
 export interface AdminPostDraft {
@@ -22,6 +26,8 @@ export interface AdminPostDraft {
   tags: Tag[];
   photoCount: number;
   videoCount: number;
+  thumbnailUrl?: string;
+  heroImageUrl?: string;
   fileSize: string;
   unzipPassword: string;
   description: string;
@@ -32,7 +38,7 @@ export interface AdminPostDraft {
     gofile: string;
   };
   previewMedia: AdminDraftMedia[];
-  status: 'draft';
+  status: 'draft' | 'published';
   createdAt: string;
   updatedAt: string;
 }
@@ -154,6 +160,66 @@ export async function saveAdminDraft(draft: AdminPostDraft) {
     : [];
   writeAdminDrafts(drafts);
   return drafts;
+}
+
+export async function uploadAdminMedia(
+  file: File,
+  options: {
+    draftId: string;
+    kind: 'thumbnail' | 'hero' | 'preview';
+    slug: string;
+  },
+) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('draftId', options.draftId);
+  formData.append('kind', options.kind);
+  formData.append('slug', options.slug);
+
+  const response = await fetch('/api/admin/media', {
+    method: 'POST',
+    body: formData,
+  });
+
+  const payload = (await response.json().catch(() => null)) as {
+    error?: string;
+    path?: string;
+    source?: 'local' | 'supabase';
+    url?: string;
+  } | null;
+
+  if (!response.ok || !payload?.url) {
+    throw new Error(payload?.error ?? 'Unable to upload media.');
+  }
+
+  return {
+    path: payload.path ?? '',
+    source: payload.source ?? 'local',
+    url: payload.url,
+  };
+}
+
+export async function publishAdminPost(draft: AdminPostDraft) {
+  const response = await fetch('/api/admin/posts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...draft,
+      status: 'published',
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(payload?.error ?? 'Unable to publish post.');
+  }
+
+  deleteAdminDraft(draft.id);
+  return response.json() as Promise<{ posts?: unknown }>;
 }
 
 export async function removeAdminDraft(id: string) {

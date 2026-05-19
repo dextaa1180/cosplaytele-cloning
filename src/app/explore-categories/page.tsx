@@ -1,8 +1,6 @@
-'use client';
-
-import { posts } from '@/data/posts';
 import { ExploreSection } from '@/components/explore/ExploreSection';
 import { TopViewSection } from '@/components/explore/TopViewSection';
+import { getPublishedPosts } from '@/lib/published-posts';
 import {
   filterPostsByTag,
   sortPostsByViews24h,
@@ -11,7 +9,11 @@ import {
   getTopPosts,
 } from '@/lib/posts';
 
-export default function ExploreCategoriesPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function ExploreCategoriesPage() {
+  const posts = await getPublishedPosts();
+
   // Filter posts by tags
   const cosplayGamePosts = filterPostsByTag(posts, 'cosplay-game');
   const cosplayAnimeMangaPosts = filterPostsByTag(posts, 'cosplay-anime-manga');
