@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Fox Cutie preview placeholder">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1c1917"/><stop offset="0.52" stop-color="#ea580c"/><stop offset="1" stop-color="#fdba74"/></linearGradient></defs>
+  <rect width="800" height="1000" fill="url(#g)"/>
+  <circle cx="635" cy="170" r="180" fill="#ffffff" opacity=".14"/>
+  <circle cx="140" cy="830" r="220" fill="#fed7aa" opacity=".17"/>
+  <rect x="80" y="110" width="640" height="780" rx="34" fill="#020617" opacity=".34" stroke="#ffffff" stroke-opacity=".28"/>
+  <text x="80" y="790" fill="#ffffff" font-family="Arial, sans-serif" font-size="60" font-weight="700">Fox Cutie</text>
+  <text x="80" y="850" fill="#ffedd5" font-family="Arial, sans-serif" font-size="30">Tunacosplay preview</text>
+</svg>

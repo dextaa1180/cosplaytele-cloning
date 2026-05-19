@@ -1,3 +1,15 @@
+export interface PreviewMedia {
+  id: string;
+  type: 'image' | 'video';
+  url?: string;
+  posterUrl?: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  duration?: string;
+  sortOrder: number;
+}
+
 export interface Post {
   id: string;
   slug: string;
@@ -23,7 +35,7 @@ export interface Post {
     sorafolder?: string;
     gofile?: string;
   };
-  previewImages?: string[];
+  previewMedia?: PreviewMedia[];
   heroImage?: string;
   description?: string;
 }

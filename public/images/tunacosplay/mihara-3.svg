@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Mihara preview placeholder">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0f172a"/><stop offset="0.5" stop-color="#155e75"/><stop offset="1" stop-color="#f43f5e"/></linearGradient></defs>
+  <rect width="800" height="1000" fill="url(#g)"/>
+  <circle cx="650" cy="160" r="170" fill="#ffffff" opacity=".12"/>
+  <circle cx="150" cy="820" r="210" fill="#22d3ee" opacity=".16"/>
+  <rect x="80" y="110" width="640" height="780" rx="34" fill="#020617" opacity=".32" stroke="#ffffff" stroke-opacity=".28"/>
+  <text x="80" y="790" fill="#ffffff" font-family="Arial, sans-serif" font-size="62" font-weight="700">Mihara</text>
+  <text x="80" y="850" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="30">Tunacosplay preview</text>
+</svg>

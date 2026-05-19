@@ -3,7 +3,7 @@
 ## Before Build
 - [x] Read previous error log
 - [x] Validate routes (ROUTES.md created)
-- [x] Assets downloaded (placeholder paths configured)
+- [x] Safe placeholder assets created
 - [x] Component specs written (PostCard.spec.md)
 - [x] SOC respected (components, data separated)
 

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Ganyu preview placeholder">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0f172a"/><stop offset="0.5" stop-color="#4338ca"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
+  <rect width="800" height="1000" fill="url(#g)"/>
+  <circle cx="630" cy="170" r="185" fill="#ffffff" opacity=".13"/>
+  <circle cx="140" cy="830" r="220" fill="#bae6fd" opacity=".16"/>
+  <rect x="80" y="110" width="640" height="780" rx="34" fill="#020617" opacity=".34" stroke="#ffffff" stroke-opacity=".28"/>
+  <text x="80" y="790" fill="#ffffff" font-family="Arial, sans-serif" font-size="62" font-weight="700">Ganyu</text>
+  <text x="80" y="850" fill="#e0f2fe" font-family="Arial, sans-serif" font-size="30">Tunacosplay preview</text>
+</svg>

@@ -37,13 +37,16 @@ The current frontend is designed to support admin-managed content uploads. This 
 
 **Note:** If no download links are provided, the detail page shows: "Download links will be added from the admin dashboard."
 
-### Preview Images (Optional, Admin-Managed)
-- **Preview Images** — Array of preview image URLs (uploaded via admin)
+### Preview Media (Optional, Admin-Managed)
+- **Preview Media** - Ordered array of preview photo/video records uploaded via admin
+- **Media Fields** - type (`image` or `video`), url, posterUrl, alt text, width/height, duration, sortOrder
 - **Behavior:**
-  - If `previewImages` exists and has images → render preview grid (max 8 images)
-  - If `previewImages` is empty/undefined → show thumbnail placeholder with message: "Preview images will be managed from the admin dashboard."
+  - If `previewMedia` exists -> render mixed preview grid (max 8 media items)
+  - Image items render optimized thumbnails
+  - Video items render as playable videos when `url` exists, or poster cards when only `posterUrl` exists
+  - If `previewMedia` is empty/undefined -> show thumbnail placeholder with message: "Preview media will be managed from the admin dashboard."
 
-**Important:** Preview images are NOT hardcoded. They will be uploaded through the admin dashboard.
+**Important:** Preview media is NOT hardcoded. It will be uploaded through the admin dashboard.
 
 ---
 
@@ -60,18 +63,21 @@ The current frontend is designed to support admin-managed content uploads. This 
 3. Hero image path is saved to post record
 4. If no hero image, detail page uses thumbnail as fallback
 
-### Preview Images Upload
-1. Admin uploads multiple preview images (1-8 images recommended)
+### Preview Media Upload
+1. Admin uploads multiple preview photos/videos (1-8 media items recommended)
 2. Images are stored in `/public/images/tunacosplay/previews/{slug}/` (dev) or object storage (production)
-3. Preview image paths are saved as array to post record
-4. Detail page renders preview grid from this array
-5. If no preview images uploaded, detail page shows thumbnail placeholder with admin notice
+3. Videos are stored in `/public/videos/tunacosplay/previews/{slug}/` (dev) or object storage/CDN (production)
+4. Preview media records are saved as an ordered array on the post record
+5. Detail page renders a mixed preview grid from this array
+6. If no preview media is uploaded, detail page shows thumbnail placeholder with admin notice
 
-### Image Processing
+### Media Processing
 - **Resize/Optimize:** Images should be resized and optimized before storage
-- **Formats:** JPEG/PNG/WebP supported
-- **Max Size:** Recommend 2MB per image after optimization
-- **Naming Convention:** `{slug}-{index}.jpg` for preview images
+- **Image Formats:** JPEG/PNG/WebP supported
+- **Video Formats:** MP4/WebM recommended for preview clips
+- **Max Image Size:** Recommend 2MB per image after optimization
+- **Max Video Size:** Keep preview clips short and compressed; full videos should stay external
+- **Naming Convention:** `{slug}-{index}.jpg` for preview images and `{slug}-{index}.mp4` for preview videos
 
 ---
 
@@ -98,18 +104,18 @@ The current frontend is designed to support admin-managed content uploads. This 
 
 ### Content Guidelines
 - **No explicit/adult media committed to repository**
-- **Preview images must be safe/appropriate**
+- **Preview photos/videos must be safe/appropriate**
 - **Full galleries are NOT hosted on this server**
 - **Download links point to external storage only**
 
 ### Admin Responsibilities
-- Verify uploaded preview images are safe
+- Verify uploaded preview photos/videos are safe
 - Ensure download links comply with legal requirements
 - Do not upload explicit media to public repository
 - Use external storage (Mediafire, Telegram, etc.) for full content
 
 ### Frontend Safeguards
-- Preview-only approach (max 8 preview images)
+- Preview-only approach (max 8 preview media items)
 - Clear disclaimer: "Preview only. Full gallery/download content is not hosted in this clone."
 - No full gallery rendering
 - No direct file hosting
@@ -189,12 +195,18 @@ CREATE TABLE posts (
 );
 ```
 
-### Preview Images Table
+### Preview Media Table
 ```sql
-CREATE TABLE preview_images (
+CREATE TABLE preview_media (
   id SERIAL PRIMARY KEY,
   post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
-  image_url TEXT NOT NULL,
+  media_type VARCHAR(20) NOT NULL, -- 'image' or 'video'
+  url TEXT,
+  poster_url TEXT,
+  alt_text TEXT,
+  width INTEGER,
+  height INTEGER,
+  duration VARCHAR(20),
   display_order INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -221,12 +233,12 @@ CREATE TABLE download_links (
 - **Edit Post** — Update post metadata, images, download links
 - **Delete Post** — Remove post and associated images
 
-### Image Upload
+### Media Upload
 - **Thumbnail Upload** — Drag-and-drop or file picker
 - **Hero Image Upload** — Optional hero image upload
-- **Preview Images Upload** — Multi-file upload (1-8 images)
-- **Image Preview** — Show uploaded images before saving
-- **Image Optimization** — Auto-resize and optimize on upload
+- **Preview Media Upload** - Multi-file upload (1-8 photos/videos)
+- **Media Preview** - Show uploaded photos/videos before saving
+- **Media Optimization** - Auto-resize images and compress preview videos on upload
 
 ### Download Link Management
 - **Add Links** — Form to add Mediafire, Telegram, SoraFolder, Gofile URLs
@@ -244,14 +256,14 @@ CREATE TABLE download_links (
 
 ### Phase 1: Frontend Preparation (CURRENT)
 - ✅ Update Post type with optional admin-managed fields
-- ✅ Update DetailPostLayout to handle missing previewImages
+- ✅ Update DetailPostLayout to handle missing previewMedia
 - ✅ Update DetailPostLayout to handle missing downloadLinks
 - ✅ Show admin-managed notices when fields are empty
 - ✅ Document admin dashboard plan
 
 ### Phase 2: Database Setup (FUTURE)
 - Set up PostgreSQL database
-- Create posts, preview_images, download_links tables
+- Create posts, preview_media, download_links tables
 - Migrate static data from `src/data/posts.ts` to database
 
 ### Phase 3: Admin Dashboard (FUTURE)

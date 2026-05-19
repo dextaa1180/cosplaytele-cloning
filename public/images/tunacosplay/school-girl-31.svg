@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="School Girl preview placeholder">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1e1b4b"/><stop offset="0.5" stop-color="#7c3aed"/><stop offset="1" stop-color="#f0abfc"/></linearGradient></defs>
+  <rect width="800" height="1000" fill="url(#g)"/>
+  <circle cx="640" cy="160" r="180" fill="#ffffff" opacity=".13"/>
+  <circle cx="140" cy="840" r="220" fill="#f5d0fe" opacity=".17"/>
+  <rect x="80" y="110" width="640" height="780" rx="34" fill="#020617" opacity=".34" stroke="#ffffff" stroke-opacity=".28"/>
+  <text x="80" y="790" fill="#ffffff" font-family="Arial, sans-serif" font-size="56" font-weight="700">School Girl</text>
+  <text x="80" y="850" fill="#fae8ff" font-family="Arial, sans-serif" font-size="30">Tunacosplay preview</text>
+</svg>

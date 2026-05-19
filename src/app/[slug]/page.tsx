@@ -1,16 +1,21 @@
-'use client';
-
 import { DetailPostLayout } from '@/components/detail/DetailPostLayout';
 import { posts } from '@/data/posts';
 
 interface DetailPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export default function DetailPage({ params }: DetailPageProps) {
-  const post = posts.find((p) => p.slug === params.slug);
+export function generateStaticParams() {
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+export default async function DetailPage({ params }: DetailPageProps) {
+  const { slug } = await params;
+  const post = posts.find((p) => p.slug === slug);
 
   if (!post) {
     return (
@@ -35,7 +40,7 @@ export default function DetailPage({ params }: DetailPageProps) {
       fileSize={post.fileSize}
       unzipPassword={post.unzipPassword}
       downloadLinks={post.downloadLinks}
-      previewImages={post.previewImages}
+      previewMedia={post.previewMedia}
       heroImage={post.heroImage}
       description={post.description}
     />

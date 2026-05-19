@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Phoebe preview placeholder">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#052e16"/><stop offset="0.55" stop-color="#16a34a"/><stop offset="1" stop-color="#bef264"/></linearGradient></defs>
+  <rect width="800" height="1000" fill="url(#g)"/>
+  <circle cx="625" cy="170" r="185" fill="#ffffff" opacity=".13"/>
+  <circle cx="130" cy="820" r="215" fill="#dcfce7" opacity=".17"/>
+  <rect x="80" y="110" width="640" height="780" rx="34" fill="#022c22" opacity=".36" stroke="#ffffff" stroke-opacity=".28"/>
+  <text x="80" y="790" fill="#ffffff" font-family="Arial, sans-serif" font-size="62" font-weight="700">Phoebe</text>
+  <text x="80" y="850" fill="#f0fdf4" font-family="Arial, sans-serif" font-size="30">Tunacosplay preview</text>
+</svg>

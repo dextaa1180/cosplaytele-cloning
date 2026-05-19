@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Nicole Demara preview placeholder">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#18181b"/><stop offset="0.48" stop-color="#ca8a04"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs>
+  <rect width="800" height="1000" fill="url(#g)"/>
+  <circle cx="640" cy="165" r="180" fill="#ffffff" opacity=".14"/>
+  <circle cx="140" cy="835" r="220" fill="#ffedd5" opacity=".17"/>
+  <rect x="80" y="110" width="640" height="780" rx="34" fill="#020617" opacity=".34" stroke="#ffffff" stroke-opacity=".28"/>
+  <text x="80" y="790" fill="#ffffff" font-family="Arial, sans-serif" font-size="52" font-weight="700">Nicole Demara</text>
+  <text x="80" y="850" fill="#ffedd5" font-family="Arial, sans-serif" font-size="30">Tunacosplay preview</text>
+</svg>

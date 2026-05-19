@@ -1,5 +1,29 @@
 # QA Report — Tunacosplay
 
+## Latest QA Update (2026-05-19)
+- **npm run check**: PASS (lint + typecheck + build)
+- **Desktop navbar**: PASS
+  - Top Cosplay dropdown opens
+  - Level Cosplay dropdown opens
+  - Opening one dropdown closes the other
+  - Escape closes an open dropdown
+  - Clicking outside closes an open dropdown
+  - Dropdown links navigate and close the menu
+- **Mobile navbar (390px)**: PASS
+  - Horizontal overflow fixed (`documentElement.scrollWidth` <= viewport width)
+  - Hamburger menu opens and closes
+  - Mobile dropdown content expands inline
+- **Image placeholders**: PASS
+  - Safe local SVG placeholders added under `public/images/tunacosplay/`
+  - Post data now points to existing local image files
+
+## Remaining Gaps (Current)
+- Real target assets are not yet downloaded or committed.
+- Search input is visual only; search behavior is not implemented.
+- Pagination is not implemented.
+- Admin dashboard is planned but not implemented.
+- Adult category pages intentionally use safe placeholder content.
+
 ## Build Status (Latest: 2026-05-18)
 - **npm run typecheck**: ✅ PASS
 - **npm run lint**: ✅ PASS
@@ -18,10 +42,10 @@
 ### Navbar
 - [x] Home link works
 - [x] Video Cosplay direct link works
-- [ ] **MANUAL TEST REQUIRED**: Top Cosplay dropdown opens on click
-- [ ] **MANUAL TEST REQUIRED**: Top Cosplay dropdown items (24 Hours, 3 Day, 7 Day) navigate correctly
-- [ ] **MANUAL TEST REQUIRED**: Level Cosplay dropdown opens on click
-- [ ] **MANUAL TEST REQUIRED**: Level Cosplay dropdown items (Cosplay, Cosplay Ero, Nude) navigate correctly
+- [x] Top Cosplay dropdown opens on click
+- [x] Top Cosplay dropdown items (24 Hours, 3 Day, 7 Day) navigate correctly
+- [x] Level Cosplay dropdown opens on click
+- [x] Level Cosplay dropdown items (Cosplay, Cosplay Ero, Nude) navigate correctly
 - [x] Explore Categories link works
 - [x] Best Cosplayer link works
 - [x] Dropdowns have proper z-index (z-[9999])
@@ -68,8 +92,8 @@
 ## Visual QA — Mobile (390px)
 
 ### Navbar
-- [ ] **MANUAL TEST REQUIRED**: Navbar responsive on mobile
-- [ ] **MANUAL TEST REQUIRED**: Dropdowns work on mobile
+- [x] Navbar responsive on mobile
+- [x] Dropdowns work on mobile
 - [x] All links accessible
 
 ### Pages
@@ -82,7 +106,7 @@
 
 ### Navigation
 - [x] All navbar links work
-- [ ] **MANUAL TEST REQUIRED**: Dropdown items navigate correctly
+- [x] Dropdown items navigate correctly
 - [x] Post cards are clickable
 - [x] Links point to correct routes
 
@@ -94,7 +118,7 @@
 - [x] All required fields present
 
 ## Known Issues
-- **Dropdowns require manual browser testing** - Build passing does NOT verify interactive features work
+- No active navbar interaction issues found in latest browser QA.
 
 ## Known Limitations
 1. Sample data is placeholder (10 posts with dummy views/tags)
@@ -105,18 +129,17 @@
 6. Ranking pages show post grid (not ranked list with view counts/stats in cards)
 7. **Video Cosplay page shows ~9 posts** (all posts with videoCount > 0, regardless of category)
 
-## Manual Testing Required
-⚠️ **CRITICAL**: The following features MUST be manually tested in a browser:
-1. Click "Top Cosplay" → dropdown should open
-2. Click "24 Hours" → should navigate to /24-hours
-3. Click "3 Day" → should navigate to /3-day
-4. Click "7 Day" → should navigate to /7-day
-5. Click "Level Cosplay" → dropdown should open
-6. Click "Cosplay" → should navigate to /category/cosplay
-7. Click "Cosplay Ero" → should navigate to /category/cosplay-ero
-8. Click "Nude" → should navigate to /category/nude
-9. Click outside dropdown → dropdown should close
-10. Press Escape key → dropdown should close
+## Browser Testing Completed
+1. Click "Top Cosplay" -> dropdown opens
+2. Click "24 Hours" -> navigates to /24-hours
+3. Click "3 Day" -> navigates to /3-day
+4. Click "7 Day" -> navigates to /7-day
+5. Click "Level Cosplay" -> dropdown opens
+6. Click "Cosplay" -> navigates to /category/cosplay
+7. Click "Cosplay Ero" -> navigates to /category/cosplay-ero
+8. Click "Nude" -> navigates to /category/nude
+9. Click outside dropdown -> dropdown closes
+10. Press Escape key -> dropdown closes
 11. Verify /category/video-cosplayy shows all posts with videoCount > 0
 
 ## Next Steps
@@ -136,11 +159,13 @@
   - If downloadLinks exist → show red rounded pill download buttons
   - If no downloadLinks → show message: "Download links will be added from the admin dashboard."
 - [x] Preview section with conditional rendering:
-  - If previewImages exist → render preview grid (max 8 images)
-  - If no previewImages → show thumbnail placeholder with message: "Preview images will be managed from the admin dashboard."
+  - If previewMedia exists -> render mixed preview grid (max 8 media items)
+  - Image items render optimized thumbnails
+  - Video items render as poster/play cards when video URL is not uploaded yet
+  - If no previewMedia -> show thumbnail placeholder with message: "Preview media will be managed from the admin dashboard."
 - [x] Preview-only notice displayed (default or custom description)
-- [x] **IMPORTANT**: Preview images and download links are admin-managed (not hardcoded)
-- [x] **IMPORTANT**: Only mihara-3 has sample preview data as demo
+- [x] **IMPORTANT**: Preview media and download links are admin-managed (not hardcoded)
+- [x] **IMPORTANT**: Only mihara-3 has sample preview media as demo
 - [x] **IMPORTANT**: Other posts show admin-managed placeholders
 - [x] **IMPORTANT**: Frontend is admin-ready for future dashboard
 

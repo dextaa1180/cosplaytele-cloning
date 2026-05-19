@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { ImageIcon, Play, Video } from 'lucide-react';
+import { PreviewMedia } from '@/types';
 
 interface DetailPostLayoutProps {
   title: string;
@@ -20,7 +22,7 @@ interface DetailPostLayoutProps {
     sorafolder?: string;
     gofile?: string;
   };
-  previewImages?: string[];
+  previewMedia?: PreviewMedia[];
   heroImage?: string;
   description?: string;
   thumbnail: string;
@@ -38,12 +40,15 @@ export function DetailPostLayout({
   fileSize,
   unzipPassword = 'cosplaytele',
   downloadLinks,
-  previewImages = [],
+  previewMedia = [],
   heroImage,
   description,
   thumbnail,
 }: DetailPostLayoutProps) {
   const heroImageSrc = heroImage || thumbnail;
+  const sortedPreviewMedia = [...previewMedia].sort(
+    (a, b) => a.sortOrder - b.sortOrder,
+  );
 
   return (
     <div className="w-full bg-neutral-900 text-white">
@@ -213,21 +218,34 @@ export function DetailPostLayout({
         <div>
           <h2 className="mb-6 text-2xl font-bold">Preview</h2>
 
-          {previewImages && previewImages.length > 0 ? (
+          {sortedPreviewMedia.length > 0 ? (
             <>
               <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {previewImages.slice(0, 8).map((img, index) => (
+                {sortedPreviewMedia.slice(0, 8).map((media, index) => (
                   <div
-                    key={index}
+                    key={media.id}
                     className="relative aspect-square overflow-hidden rounded-lg bg-neutral-800"
                   >
-                    <Image
-                      src={img}
-                      alt={`Preview ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    />
+                    {media.type === 'image' && media.url ? (
+                      <Image
+                        src={media.url}
+                        alt={media.alt || `Preview photo ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                    ) : (
+                      <VideoPreview media={media} index={index} />
+                    )}
+
+                    <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                      {media.type === 'image' ? (
+                        <ImageIcon className="h-3 w-3" aria-hidden="true" />
+                      ) : (
+                        <Video className="h-3 w-3" aria-hidden="true" />
+                      )}
+                      {media.type}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -244,7 +262,7 @@ export function DetailPostLayout({
                 />
               </div>
               <p className="text-sm text-neutral-400">
-                Preview images will be managed from the admin dashboard.
+                Preview media will be managed from the admin dashboard.
               </p>
             </div>
           )}
@@ -257,5 +275,55 @@ export function DetailPostLayout({
         </div>
       </div>
     </div>
+  );
+}
+
+interface VideoPreviewProps {
+  media: PreviewMedia;
+  index: number;
+}
+
+function VideoPreview({ media, index }: VideoPreviewProps) {
+  if (media.url) {
+    return (
+      <video
+        className="h-full w-full object-cover"
+        controls
+        muted
+        playsInline
+        preload="none"
+        poster={media.posterUrl}
+        aria-label={media.alt || `Preview video ${index + 1}`}
+      >
+        <source src={media.url} />
+        Your browser does not support the video tag.
+      </video>
+    );
+  }
+
+  return (
+    <>
+      {media.posterUrl ? (
+        <Image
+          src={media.posterUrl}
+          alt={media.alt || `Preview video ${index + 1}`}
+          fill
+          className="object-cover"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-neutral-700">
+          <Video className="h-10 w-10 text-neutral-300" aria-hidden="true" />
+        </div>
+      )}
+      <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-neutral-950 shadow-lg">
+          <Play className="ml-1 h-6 w-6 fill-current" aria-hidden="true" />
+        </div>
+      </div>
+      <div className="absolute bottom-2 right-2 rounded bg-black/75 px-2 py-1 text-xs font-semibold text-white">
+        {media.duration || 'Video preview'}
+      </div>
+    </>
   );
 }
