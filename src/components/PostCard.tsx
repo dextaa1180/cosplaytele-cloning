@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Post } from '@/types';
+import { shouldBypassImageOptimizer } from '@/lib/media';
 
 interface PostCardProps {
   post: Post;
@@ -20,6 +21,7 @@ export function PostCard({ post }: PostCardProps) {
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            unoptimized={shouldBypassImageOptimizer(post.thumbnail)}
           />
 
           {/* Badge */}

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ImageIcon, Play, Video } from 'lucide-react';
 import { PreviewMedia } from '@/types';
+import { shouldBypassImageOptimizer } from '@/lib/media';
 
 interface DetailPostLayoutProps {
   title: string;
@@ -62,6 +63,7 @@ export function DetailPostLayout({
             fill
             className="object-cover"
             priority
+            unoptimized={shouldBypassImageOptimizer(heroImageSrc)}
           />
           <div className="absolute inset-0 bg-black/70" />
         </div>
@@ -233,6 +235,7 @@ export function DetailPostLayout({
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        unoptimized={shouldBypassImageOptimizer(media.url)}
                       />
                     ) : (
                       <VideoPreview media={media} index={index} />
@@ -259,6 +262,7 @@ export function DetailPostLayout({
                   fill
                   className="object-cover"
                   sizes="128px"
+                  unoptimized={shouldBypassImageOptimizer(thumbnail)}
                 />
               </div>
               <p className="text-sm text-neutral-400">
@@ -310,6 +314,7 @@ function VideoPreview({ media, index }: VideoPreviewProps) {
           fill
           className="object-cover"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          unoptimized={shouldBypassImageOptimizer(media.posterUrl)}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-neutral-700">
