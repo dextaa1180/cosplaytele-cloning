@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { FilePenLine, ImageIcon, Trash2, Video } from 'lucide-react';
+import { ADMIN_DASHBOARD_PATH } from '@/lib/admin-auth';
 import {
   AdminPostDraft,
   fetchAdminDrafts,
@@ -65,7 +66,7 @@ export function AdminDraftList() {
           </p>
         </div>
         <Link
-          href="/admin/posts/new"
+          href={`${ADMIN_DASHBOARD_PATH}/posts/new`}
           className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
         >
           <FilePenLine className="h-4 w-4" aria-hidden="true" />

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ImageIcon, Plus, Video } from 'lucide-react';
 import { AdminDraftList } from '@/components/admin/AdminDraftList';
+import { ADMIN_DASHBOARD_PATH } from '@/lib/admin-auth';
 import { getPublishedPosts } from '@/lib/published-posts';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ export default async function AdminDashboardPage() {
             </p>
           </div>
           <Link
-            href="/admin/posts/new"
+            href={`${ADMIN_DASHBOARD_PATH}/posts/new`}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />

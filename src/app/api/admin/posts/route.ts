@@ -1,4 +1,5 @@
 import { revalidatePath } from 'next/cache';
+import { ADMIN_DASHBOARD_PATH } from '@/lib/admin-auth';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
 import { getPublishedPosts, publishAdminDraft } from '@/lib/published-posts';
 
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     const posts = await publishAdminDraft(normalizedDraft);
 
     revalidatePath('/');
-    revalidatePath('/admin');
+    revalidatePath(ADMIN_DASHBOARD_PATH);
     revalidatePath('/explore-categories');
     revalidatePath(`/${normalizedDraft.slug}`);
     revalidatePath(`/category/${normalizedDraft.category}`);

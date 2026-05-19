@@ -1,3 +1,4 @@
+import { ADMIN_API_BASE_PATH } from '@/lib/admin-auth';
 import { Category, Tag } from '@/types';
 
 export interface AdminDraftMedia {
@@ -130,7 +131,7 @@ export function deleteAdminDraft(id: string) {
 }
 
 export async function fetchAdminDrafts() {
-  const response = await fetch('/api/admin/drafts', { cache: 'no-store' });
+  const response = await fetch(`${ADMIN_API_BASE_PATH}/drafts`, { cache: 'no-store' });
   if (!response.ok) {
     return readAdminDrafts();
   }
@@ -142,7 +143,7 @@ export async function fetchAdminDrafts() {
 }
 
 export async function saveAdminDraft(draft: AdminPostDraft) {
-  const response = await fetch('/api/admin/drafts', {
+  const response = await fetch(`${ADMIN_API_BASE_PATH}/drafts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -176,7 +177,7 @@ export async function uploadAdminMedia(
   formData.append('kind', options.kind);
   formData.append('slug', options.slug);
 
-  const response = await fetch('/api/admin/media', {
+  const response = await fetch(`${ADMIN_API_BASE_PATH}/media`, {
     method: 'POST',
     body: formData,
   });
@@ -214,7 +215,7 @@ function parseUploadResponse(responseText: string) {
 }
 
 export async function publishAdminPost(draft: AdminPostDraft) {
-  const response = await fetch('/api/admin/posts', {
+  const response = await fetch(`${ADMIN_API_BASE_PATH}/posts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -252,7 +253,7 @@ function parseJsonResponse<T>(responseText: string) {
 }
 
 export async function removeAdminDraft(id: string) {
-  const response = await fetch(`/api/admin/drafts?id=${encodeURIComponent(id)}`, {
+  const response = await fetch(`${ADMIN_API_BASE_PATH}/drafts?id=${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
 

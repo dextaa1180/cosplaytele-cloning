@@ -1,66 +1,59 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import {
+  ADMIN_API_BASE_PATH,
+  ADMIN_LOGIN_PATH,
+  ADMIN_SESSION_COOKIE,
+  hasAdminAuthConfig,
+  verifyAdminSession,
+} from '@/lib/admin-auth';
 
-const adminRealm = 'Tunacosplay Admin';
+const legacyAdminPaths = ['/admin', '/api/admin'];
+const publicSessionPath = `${ADMIN_API_BASE_PATH}/session`;
 
-export function proxy(request: NextRequest) {
-  const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD;
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
 
-  if (!password) {
+  if (legacyAdminPaths.some((path) => isPathOrChild(pathname, path))) {
+    return new NextResponse('Not found.', { status: 404 });
+  }
+
+  if (isPathOrChild(pathname, publicSessionPath)) {
+    return NextResponse.next();
+  }
+
+  if (!hasAdminAuthConfig()) {
     return new NextResponse('Admin authentication is not configured.', {
       status: 503,
     });
   }
 
-  if (isAuthorized(request, username, password)) {
+  const isAuthenticated = await verifyAdminSession(
+    request.cookies.get(ADMIN_SESSION_COOKIE)?.value,
+  );
+
+  if (isAuthenticated) {
     return NextResponse.next();
   }
 
-  return new NextResponse('Authentication required.', {
-    headers: {
-      'WWW-Authenticate': `Basic realm="${adminRealm}", charset="UTF-8"`,
-    },
-    status: 401,
-  });
+  if (isPathOrChild(pathname, ADMIN_API_BASE_PATH)) {
+    return Response.json({ error: 'Authentication required.' }, { status: 401 });
+  }
+
+  const loginUrl = new URL(ADMIN_LOGIN_PATH, request.url);
+  loginUrl.searchParams.set('next', pathname);
+
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/api/admin/:path*',
+    '/tuna-console/:path*',
+    '/api/tuna-console/:path*',
+  ],
 };
 
-function isAuthorized(
-  request: NextRequest,
-  username: string,
-  password: string,
-) {
-  const authorization = request.headers.get('authorization');
-  if (!authorization?.startsWith('Basic ')) {
-    return false;
-  }
-
-  const credentials = decodeBasicAuth(authorization);
-  if (!credentials) {
-    return false;
-  }
-
-  return credentials.username === username && credentials.password === password;
-}
-
-function decodeBasicAuth(authorization: string) {
-  try {
-    const encodedCredentials = authorization.slice('Basic '.length);
-    const decodedCredentials = atob(encodedCredentials);
-    const separatorIndex = decodedCredentials.indexOf(':');
-
-    if (separatorIndex < 0) {
-      return null;
-    }
-
-    return {
-      username: decodedCredentials.slice(0, separatorIndex),
-      password: decodedCredentials.slice(separatorIndex + 1),
-    };
-  } catch {
-    return null;
-  }
+function isPathOrChild(pathname: string, basePath: string) {
+  return pathname === basePath || pathname.startsWith(`${basePath}/`);
 }
