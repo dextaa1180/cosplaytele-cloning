@@ -1,5 +1,6 @@
 'use client';
 
+import imageCompression from 'browser-image-compression';
 import { ChangeEvent, useMemo, useState } from 'react';
 import {
   Check,
@@ -28,6 +29,12 @@ type DraftMedia = AdminDraftMedia & {
 
 const categories: Category[] = ['cosplay', 'video-cosplayy', 'cosplay-ero', 'nude'];
 const tags: Tag[] = ['cosplay-game', 'cosplay-anime-manga', 'cosplay-freestyle', 'video'];
+const compressibleImageTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/bmp',
+]);
 
 interface AdminPostEditorProps {
   initialDraft?: AdminPostDraft;
@@ -142,12 +149,20 @@ export function AdminPostEditor({
 
       for (const file of mediaFiles) {
         setSaveMessage(
-          `Uploading preview media ${uploadedMedia.length + 1} of ${mediaFiles.length}...`,
+          `Preparing preview media ${uploadedMedia.length + 1} of ${mediaFiles.length}...`,
         );
 
         const type = file.type.startsWith('video/') ? 'video' : 'image';
-        const objectUrl = URL.createObjectURL(file);
-        const uploaded = await uploadAdminMedia(file, {
+        const uploadFile =
+          type === 'image'
+            ? await compressImageForUpload(file, 'preview')
+            : file;
+        setSaveMessage(
+          `Uploading preview media ${uploadedMedia.length + 1} of ${mediaFiles.length} (${formatBytes(uploadFile.size)})...`,
+        );
+
+        const objectUrl = URL.createObjectURL(uploadFile);
+        const uploaded = await uploadAdminMedia(uploadFile, {
           draftId,
           kind: 'preview',
           slug,
@@ -155,10 +170,10 @@ export function AdminPostEditor({
         const media = {
           id: createDraftId(),
           type,
-          fileName: file.name,
-          fileSize: file.size,
+          fileName: uploadFile.name,
+          fileSize: uploadFile.size,
           url: uploaded.url,
-          alt: file.name.replace(/\.[^.]+$/, ''),
+          alt: uploadFile.name.replace(/\.[^.]+$/, ''),
           duration: type === 'video' ? 'preview' : undefined,
           sortOrder: startingOrder + uploadedMedia.length + 1,
           storageStatus: 'uploaded',
@@ -198,17 +213,23 @@ export function AdminPostEditor({
     clearFeedback();
 
     try {
-      const uploaded = await uploadAdminMedia(file, {
+      setSaveMessage(`Preparing ${kind === 'thumbnail' ? 'thumbnail' : 'hero image'}...`);
+      const uploadFile = await compressImageForUpload(file, 'cover');
+      setSaveMessage(
+        `Uploading ${kind === 'thumbnail' ? 'thumbnail' : 'hero image'} (${formatBytes(uploadFile.size)})...`,
+      );
+
+      const uploaded = await uploadAdminMedia(uploadFile, {
         draftId,
         kind,
         slug,
       });
 
       if (kind === 'thumbnail') {
-        setThumbnailName(file.name);
+        setThumbnailName(uploadFile.name);
         setThumbnailUrl(uploaded.url);
       } else {
-        setHeroName(file.name);
+        setHeroName(uploadFile.name);
         setHeroImageUrl(uploaded.url);
       }
 
@@ -853,6 +874,39 @@ function createDraftId() {
   }
 
   return `draft-${Date.now()}`;
+}
+
+async function compressImageForUpload(
+  file: File,
+  target: 'cover' | 'preview',
+) {
+  if (!compressibleImageTypes.has(file.type)) {
+    return file;
+  }
+
+  const compressed = await imageCompression(file, {
+    alwaysKeepResolution: false,
+    fileType: 'image/webp',
+    initialQuality: target === 'cover' ? 0.82 : 0.78,
+    maxIteration: 8,
+    maxSizeMB: target === 'cover' ? 1.2 : 1.6,
+    maxWidthOrHeight: target === 'cover' ? 1600 : 1800,
+    useWebWorker: false,
+  });
+
+  if (compressed.size >= file.size) {
+    return file;
+  }
+
+  return new File([compressed], replaceExtension(file.name, 'webp'), {
+    lastModified: Date.now(),
+    type: compressed.type || 'image/webp',
+  });
+}
+
+function replaceExtension(fileName: string, extension: string) {
+  const baseName = fileName.replace(/\.[^.]+$/, '') || 'upload';
+  return `${baseName}.${extension}`;
 }
 
 function toStoredMedia(media: DraftMedia): AdminDraftMedia {
