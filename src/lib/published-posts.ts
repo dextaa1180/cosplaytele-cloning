@@ -29,7 +29,7 @@ type PublishedPostRow = {
   download_links: Array<{
     provider: 'mediafire' | 'telegram' | 'sorafolder' | 'gofile';
     url: string;
-  }>;
+  }> | null;
   preview_media: Array<{
     alt_text: string | null;
     duration: string | null;
@@ -40,7 +40,7 @@ type PublishedPostRow = {
     sort_order: number;
     url: string | null;
     width: number | null;
-  }>;
+  }> | null;
 };
 
 const dataDirectory = path.join(process.cwd(), '.data');
@@ -242,7 +242,7 @@ function rowToPost(row: PublishedPostRow): Post {
     source: row.source,
     tags: row.tags,
     category: row.category,
-    thumbnail: row.thumbnail_url || fallbackThumbnail,
+    thumbnail: normalizePublicMediaUrl(row.thumbnail_url) || fallbackThumbnail,
     photoCount: row.photo_count,
     videoCount: row.video_count,
     views24h: row.views_24h,
@@ -251,21 +251,21 @@ function rowToPost(row: PublishedPostRow): Post {
     totalViews: row.total_views,
     fileSize: row.file_size ?? undefined,
     unzipPassword: row.unzip_password ?? undefined,
-    downloadLinks: downloadLinksToPost(row.download_links),
-    previewMedia: row.preview_media
+    downloadLinks: downloadLinksToPost(row.download_links ?? []),
+    previewMedia: (row.preview_media ?? [])
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((media) => ({
         id: media.id,
         type: media.media_type,
-        url: media.url ?? undefined,
-        posterUrl: media.poster_url ?? undefined,
+        url: normalizePublicMediaUrl(media.url) || undefined,
+        posterUrl: normalizePublicMediaUrl(media.poster_url) || undefined,
         alt: media.alt_text ?? undefined,
         width: media.width ?? undefined,
         height: media.height ?? undefined,
         duration: media.duration ?? undefined,
         sortOrder: media.sort_order,
       })),
-    heroImage: row.hero_image_url ?? undefined,
+    heroImage: normalizePublicMediaUrl(row.hero_image_url) || undefined,
     description: row.description ?? undefined,
   };
 }
@@ -312,7 +312,7 @@ function draftToPost(draft: AdminPostDraft): Post {
   };
 }
 
-function downloadLinksToPost(rowLinks: PublishedPostRow['download_links']) {
+function downloadLinksToPost(rowLinks: NonNullable<PublishedPostRow['download_links']> = []) {
   return rowLinks.reduce<Post['downloadLinks']>(
     (links, link) => ({
       ...links,
@@ -320,6 +320,19 @@ function downloadLinksToPost(rowLinks: PublishedPostRow['download_links']) {
     }),
     {},
   );
+}
+
+function normalizePublicMediaUrl(url: string | null | undefined) {
+  if (!url) {
+    return '';
+  }
+
+  const publicBaseUrl = process.env.PUBLIC_STORAGE_BASE_URL?.replace(/\/+$/, '');
+  if (!publicBaseUrl) {
+    return url;
+  }
+
+  return url.replace(/^http:\/\/kong:8000(?=\/storage\/v1\/)/, publicBaseUrl);
 }
 
 function mergePosts(primaryPosts: Post[], fallbackPosts: Post[]) {

@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       return Response.json({
         path: storagePath,
         source: 'supabase',
-        url: data.publicUrl,
+        url: createPublicStorageUrl(bucket, storagePath) || data.publicUrl,
       });
     }
 
@@ -129,4 +129,13 @@ function getErrorMessage(error: unknown) {
   }
 
   return 'Unable to upload media.';
+}
+
+function createPublicStorageUrl(bucket: string, storagePath: string) {
+  const baseUrl = process.env.PUBLIC_STORAGE_BASE_URL?.trim();
+  if (!baseUrl) {
+    return '';
+  }
+
+  return `${baseUrl.replace(/\/+$/, '')}/storage/v1/object/public/${bucket}/${storagePath}`;
 }
