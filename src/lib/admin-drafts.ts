@@ -225,15 +225,30 @@ export async function publishAdminPost(draft: AdminPostDraft) {
     }),
   });
 
+  const responseText = await response.text();
+  const payload = parseJsonResponse<{ error?: string; posts?: unknown }>(
+    responseText,
+  );
+
   if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as {
-      error?: string;
-    } | null;
-    throw new Error(payload?.error ?? 'Unable to publish post.');
+    throw new Error(
+      payload?.error ??
+        `Unable to publish post. Server returned ${response.status}.`,
+    );
   }
 
   deleteAdminDraft(draft.id);
-  return response.json() as Promise<{ posts?: unknown }>;
+  return { posts: payload?.posts };
+}
+
+function parseJsonResponse<T>(responseText: string) {
+  try {
+    return JSON.parse(responseText) as T;
+  } catch {
+    return responseText.trim()
+      ? ({ error: responseText.trim().slice(0, 240) } as T)
+      : null;
+  }
 }
 
 export async function removeAdminDraft(id: string) {

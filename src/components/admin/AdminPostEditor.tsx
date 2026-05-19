@@ -70,18 +70,26 @@ export function AdminPostEditor() {
     [previewMedia],
   );
 
+  const fallbackThumbnailUrl = useMemo(
+    () =>
+      previewMedia.find((media) => media.type === 'image' && media.url)?.url ??
+      previewMedia.find((media) => media.url)?.url ??
+      '',
+    [previewMedia],
+  );
+
   const storageShape = useMemo(
     () => ({
       title,
       slug,
       category,
       tags: selectedTags,
-      thumbnailUrl,
+      thumbnailUrl: thumbnailUrl || fallbackThumbnailUrl,
       heroImageUrl,
       previewMedia: previewMedia.map(toStoredMedia),
       downloadLinks,
     }),
-    [category, downloadLinks, heroImageUrl, previewMedia, selectedTags, slug, thumbnailUrl, title],
+    [category, downloadLinks, fallbackThumbnailUrl, heroImageUrl, previewMedia, selectedTags, slug, thumbnailUrl, title],
   );
 
   const handleTitleChange = (value: string) => {
@@ -216,14 +224,14 @@ export function AdminPostEditor() {
   };
 
   const handleValidate = () => {
-    const messages = validateDraft('draft');
+    const messages = validateDraft();
     setValidationMessages(messages);
     setSaveMessage(messages.length === 0 ? 'Draft schema is valid.' : '');
     return messages.length === 0;
   };
 
   const handleSaveDraft = async () => {
-    const messages = validateDraft('draft');
+    const messages = validateDraft();
     setValidationMessages(messages);
     setSaving(true);
 
@@ -242,7 +250,7 @@ export function AdminPostEditor() {
   };
 
   const handlePublishPost = async () => {
-    const messages = validateDraft('publish');
+    const messages = validateDraft();
     setValidationMessages(messages);
 
     if (messages.length > 0) {
@@ -281,7 +289,7 @@ export function AdminPostEditor() {
       tags: selectedTags,
       photoCount,
       videoCount,
-      thumbnailUrl,
+      thumbnailUrl: thumbnailUrl || fallbackThumbnailUrl,
       heroImageUrl,
       fileSize,
       unzipPassword,
@@ -294,7 +302,7 @@ export function AdminPostEditor() {
     };
   };
 
-  const validateDraft = (mode: 'draft' | 'publish') => {
+  const validateDraft = () => {
     const messages: string[] = [];
 
     if (!title.trim()) messages.push('Title is required.');
@@ -302,11 +310,8 @@ export function AdminPostEditor() {
     if (!cosplayer.trim()) messages.push('Cosplayer is required.');
     if (!character.trim()) messages.push('Character is required.');
     if (!source.trim()) messages.push('Source is required.');
-    if (!thumbnailName && !thumbnailUrl.trim()) {
-      messages.push('Thumbnail image or thumbnail URL should be selected.');
-    }
-    if (mode === 'publish' && !thumbnailUrl.trim()) {
-      messages.push('Thumbnail URL is required before publishing so the home page can render the post.');
+    if (!thumbnailName && !thumbnailUrl.trim() && !fallbackThumbnailUrl) {
+      messages.push('Thumbnail image, thumbnail URL, or at least one uploaded preview image is required.');
     }
     if (previewMedia.length === 0) {
       messages.push('Add at least one preview photo or video.');
@@ -670,7 +675,10 @@ export function AdminPostEditor() {
                 <StatusRow label="Tags" value={selectedTags.length.toString()} />
                 <StatusRow label="Preview Images" value={counts.images.toString()} />
                 <StatusRow label="Preview Videos" value={counts.videos.toString()} />
-                <StatusRow label="Thumbnail" value={thumbnailUrl ? 'uploaded' : 'missing'} />
+                <StatusRow
+                  label="Thumbnail"
+                  value={thumbnailUrl ? 'uploaded' : fallbackThumbnailUrl ? 'using preview' : 'missing'}
+                />
               </dl>
               {validationMessages.length > 0 && (
                 <div className="mt-5 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
