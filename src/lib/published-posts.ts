@@ -5,6 +5,12 @@ import type { AdminPostDraft } from '@/lib/admin-drafts';
 import { getSupabaseAdminClient } from '@/lib/supabase/server';
 import type { Post } from '@/types';
 
+export type ManagedPost = Post & {
+  createdAt?: string;
+  status: AdminPostDraft['status'];
+  updatedAt?: string;
+};
+
 type PublishedPostRow = {
   category: string;
   character: string;
@@ -17,11 +23,13 @@ type PublishedPostRow = {
   photo_count: number;
   slug: string;
   source: string;
+  status: AdminPostDraft['status'];
   tags: string[];
   thumbnail_url: string | null;
   title: string;
   total_views: number;
   unzip_password: string | null;
+  updated_at: string;
   video_count: number;
   views_24h: number;
   views_3d: number;
@@ -55,9 +63,27 @@ export async function getPublishedPosts() {
   return mergePosts(localPosts, staticPosts);
 }
 
+export async function getManagedPosts() {
+  const supabasePosts = await listSupabaseManagedPosts();
+  if (supabasePosts) {
+    return supabasePosts;
+  }
+
+  const localPosts = await readLocalPublishedPosts();
+  return localPosts.map((post) => ({
+    ...post,
+    status: 'published' as const,
+  }));
+}
+
 export async function getPublishedPostBySlug(slug: string) {
   const posts = await getPublishedPosts();
   return posts.find((post) => post.slug === slug);
+}
+
+export async function getManagedPostById(id: string) {
+  const posts = await getManagedPosts();
+  return posts.find((post) => post.id === id);
 }
 
 export async function publishAdminDraft(draft: AdminPostDraft) {
@@ -72,6 +98,14 @@ export async function publishAdminDraft(draft: AdminPostDraft) {
     (item) => item.id === post.id || item.slug === post.slug,
   );
 
+  if (draft.status !== 'published') {
+    if (existingIndex >= 0) {
+      publishedPosts.splice(existingIndex, 1);
+    }
+    await writeLocalPublishedPosts(publishedPosts);
+    return mergePosts(publishedPosts, staticPosts);
+  }
+
   if (existingIndex >= 0) {
     publishedPosts[existingIndex] = post;
   } else {
@@ -84,25 +118,97 @@ export async function publishAdminDraft(draft: AdminPostDraft) {
   return mergePosts(publishedPosts, staticPosts);
 }
 
+export async function deletePublishedPost(id: string) {
+  const supabasePosts = await deleteSupabasePost(id);
+  if (supabasePosts) {
+    return supabasePosts;
+  }
+
+  const publishedPosts = await readLocalPublishedPosts();
+  const nextPosts = publishedPosts.filter((post) => post.id !== id);
+  await writeLocalPublishedPosts(nextPosts);
+  return nextPosts.map((post) => ({
+    ...post,
+    status: 'published' as const,
+  }));
+}
+
+export function managedPostToDraft(post: ManagedPost): AdminPostDraft {
+  return {
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    cosplayer: post.cosplayer,
+    character: post.character,
+    source: post.source,
+    category: post.category as AdminPostDraft['category'],
+    tags: post.tags as AdminPostDraft['tags'],
+    photoCount: post.photoCount,
+    videoCount: post.videoCount,
+    thumbnailUrl: post.thumbnail,
+    heroImageUrl: post.heroImage ?? '',
+    fileSize: post.fileSize ?? '',
+    unzipPassword: post.unzipPassword ?? 'cosplaytele',
+    description: post.description ?? '',
+    downloadLinks: {
+      mediafire: post.downloadLinks?.mediafire ?? '',
+      telegram: post.downloadLinks?.telegram ?? '',
+      sorafolder: post.downloadLinks?.sorafolder ?? '',
+      gofile: post.downloadLinks?.gofile ?? '',
+    },
+    previewMedia: (post.previewMedia ?? []).map((media) => ({
+      id: media.id,
+      type: media.type,
+      fileName: media.alt || media.id,
+      fileSize: 0,
+      url: media.url,
+      posterUrl: media.posterUrl,
+      alt: media.alt ?? '',
+      width: media.width,
+      height: media.height,
+      duration: media.duration,
+      sortOrder: media.sortOrder,
+      storageStatus: 'uploaded',
+    })),
+    status: post.status,
+    createdAt: post.createdAt ?? new Date().toISOString(),
+    updatedAt: post.updatedAt ?? new Date().toISOString(),
+  };
+}
+
 async function listSupabasePublishedPosts() {
+  const posts = await listSupabasePosts('published');
+  return posts?.map(stripManagedPost) ?? null;
+}
+
+async function listSupabaseManagedPosts() {
+  return listSupabasePosts();
+}
+
+async function listSupabasePosts(status?: AdminPostDraft['status']) {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return null;
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('posts')
     .select(
-      'id, slug, title, cosplayer, character, source, category, tags, photo_count, video_count, thumbnail_url, hero_image_url, file_size, unzip_password, description, views_24h, views_3d, views_7d, total_views, created_at, preview_media(id, media_type, url, poster_url, alt_text, width, height, duration, sort_order), download_links(provider, url)',
+      'id, slug, title, cosplayer, character, source, category, tags, photo_count, video_count, thumbnail_url, hero_image_url, file_size, unzip_password, description, status, views_24h, views_3d, views_7d, total_views, created_at, updated_at, preview_media(id, media_type, url, poster_url, alt_text, width, height, duration, sort_order), download_links(provider, url)',
     )
-    .eq('status', 'published')
     .order('created_at', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as PublishedPostRow[]).map(rowToPost);
+  return ((data ?? []) as PublishedPostRow[]).map(rowToManagedPost);
 }
 
 async function publishSupabasePost(draft: AdminPostDraft) {
@@ -127,7 +233,8 @@ async function publishSupabasePost(draft: AdminPostDraft) {
     file_size: draft.fileSize || null,
     unzip_password: draft.unzipPassword || 'cosplaytele',
     description: draft.description || null,
-    status: 'published' as const,
+    status: draft.status,
+    created_at: draft.createdAt,
     updated_at: draft.updatedAt,
   };
 
@@ -197,6 +304,21 @@ async function publishSupabasePost(draft: AdminPostDraft) {
   return listSupabasePublishedPosts();
 }
 
+async function deleteSupabasePost(id: string) {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { error } = await supabase.from('posts').delete().eq('id', id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return listSupabaseManagedPosts();
+}
+
 async function readLocalPublishedPosts() {
   try {
     const contents = await readFile(publishedFile, 'utf8');
@@ -232,7 +354,7 @@ async function removeLocalDraft(id: string) {
   }
 }
 
-function rowToPost(row: PublishedPostRow): Post {
+function rowToManagedPost(row: PublishedPostRow): ManagedPost {
   return {
     id: row.id,
     slug: row.slug,
@@ -267,6 +389,35 @@ function rowToPost(row: PublishedPostRow): Post {
       })),
     heroImage: normalizePublicMediaUrl(row.hero_image_url) || undefined,
     description: row.description ?? undefined,
+    createdAt: row.created_at,
+    status: row.status,
+    updatedAt: row.updated_at,
+  };
+}
+
+function stripManagedPost(post: ManagedPost): Post {
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    cosplayer: post.cosplayer,
+    character: post.character,
+    source: post.source,
+    tags: post.tags,
+    category: post.category,
+    thumbnail: post.thumbnail,
+    photoCount: post.photoCount,
+    videoCount: post.videoCount,
+    views24h: post.views24h,
+    views3d: post.views3d,
+    views7d: post.views7d,
+    totalViews: post.totalViews,
+    fileSize: post.fileSize,
+    unzipPassword: post.unzipPassword,
+    downloadLinks: post.downloadLinks,
+    previewMedia: post.previewMedia,
+    heroImage: post.heroImage,
+    description: post.description,
   };
 }
 

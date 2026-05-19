@@ -220,10 +220,7 @@ export async function publishAdminPost(draft: AdminPostDraft) {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      ...draft,
-      status: 'published',
-    }),
+    body: JSON.stringify(draft),
   });
 
   const responseText = await response.text();

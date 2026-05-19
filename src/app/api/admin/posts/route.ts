@@ -1,13 +1,13 @@
 import { revalidatePath } from 'next/cache';
 import { ADMIN_DASHBOARD_PATH } from '@/lib/admin-auth';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
-import { getPublishedPosts, publishAdminDraft } from '@/lib/published-posts';
+import { getManagedPosts, publishAdminDraft } from '@/lib/published-posts';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const posts = await getPublishedPosts();
+  const posts = await getManagedPosts();
   return Response.json({ posts });
 }
 
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const normalizedDraft = {
       ...draft,
       thumbnailUrl: getPublishThumbnailUrl(draft),
-      status: 'published' as const,
+      status: draft.status ?? ('published' as const),
     };
     const error = validatePublishPayload(normalizedDraft);
 

@@ -21,7 +21,7 @@ export default async function AdminDashboardPage() {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-950 dark:text-white">
-              Admin Content
+              Content
             </h1>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Manage post metadata, preview media, and external download links.

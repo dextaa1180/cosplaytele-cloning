@@ -29,33 +29,54 @@ type DraftMedia = AdminDraftMedia & {
 const categories: Category[] = ['cosplay', 'video-cosplayy', 'cosplay-ero', 'nude'];
 const tags: Tag[] = ['cosplay-game', 'cosplay-anime-manga', 'cosplay-freestyle', 'video'];
 
-export function AdminPostEditor() {
-  const [draftId] = useState(() => createDraftId());
-  const [createdAt] = useState(() => new Date().toISOString());
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [cosplayer, setCosplayer] = useState('');
-  const [character, setCharacter] = useState('');
-  const [source, setSource] = useState('');
-  const [category, setCategory] = useState<Category>('cosplay');
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(['cosplay-game']);
-  const [photoCount, setPhotoCount] = useState(0);
-  const [videoCount, setVideoCount] = useState(0);
-  const [fileSize, setFileSize] = useState('');
-  const [unzipPassword, setUnzipPassword] = useState('cosplaytele');
-  const [description, setDescription] = useState('');
-  const [thumbnailName, setThumbnailName] = useState('');
-  const [heroName, setHeroName] = useState('');
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
-  const [heroImageUrl, setHeroImageUrl] = useState('');
+interface AdminPostEditorProps {
+  initialDraft?: AdminPostDraft;
+  mode?: 'create' | 'edit';
+}
+
+export function AdminPostEditor({
+  initialDraft,
+  mode = 'create',
+}: AdminPostEditorProps = {}) {
+  const [draftId] = useState(() => initialDraft?.id ?? createDraftId());
+  const [createdAt] = useState(() => initialDraft?.createdAt ?? new Date().toISOString());
+  const [title, setTitle] = useState(initialDraft?.title ?? '');
+  const [slug, setSlug] = useState(initialDraft?.slug ?? '');
+  const [slugTouched, setSlugTouched] = useState(Boolean(initialDraft?.slug));
+  const [cosplayer, setCosplayer] = useState(initialDraft?.cosplayer ?? '');
+  const [character, setCharacter] = useState(initialDraft?.character ?? '');
+  const [source, setSource] = useState(initialDraft?.source ?? '');
+  const [category, setCategory] = useState<Category>(initialDraft?.category ?? 'cosplay');
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(
+    initialDraft?.tags.length ? initialDraft.tags : ['cosplay-game'],
+  );
+  const [postStatus, setPostStatus] = useState<AdminPostDraft['status']>(
+    initialDraft?.status ?? 'published',
+  );
+  const [photoCount, setPhotoCount] = useState(initialDraft?.photoCount ?? 0);
+  const [videoCount, setVideoCount] = useState(initialDraft?.videoCount ?? 0);
+  const [fileSize, setFileSize] = useState(initialDraft?.fileSize ?? '');
+  const [unzipPassword, setUnzipPassword] = useState(
+    initialDraft?.unzipPassword ?? 'cosplaytele',
+  );
+  const [description, setDescription] = useState(initialDraft?.description ?? '');
+  const [thumbnailName, setThumbnailName] = useState(
+    initialDraft?.thumbnailUrl ? 'Current thumbnail' : '',
+  );
+  const [heroName, setHeroName] = useState(
+    initialDraft?.heroImageUrl ? 'Current hero image' : '',
+  );
+  const [thumbnailUrl, setThumbnailUrl] = useState(initialDraft?.thumbnailUrl ?? '');
+  const [heroImageUrl, setHeroImageUrl] = useState(initialDraft?.heroImageUrl ?? '');
   const [downloadLinks, setDownloadLinks] = useState({
-    mediafire: '',
-    telegram: '',
-    sorafolder: '',
-    gofile: '',
+    mediafire: initialDraft?.downloadLinks.mediafire ?? '',
+    telegram: initialDraft?.downloadLinks.telegram ?? '',
+    sorafolder: initialDraft?.downloadLinks.sorafolder ?? '',
+    gofile: initialDraft?.downloadLinks.gofile ?? '',
   });
-  const [previewMedia, setPreviewMedia] = useState<DraftMedia[]>([]);
+  const [previewMedia, setPreviewMedia] = useState<DraftMedia[]>(
+    () => initialDraft?.previewMedia ?? [],
+  );
   const [validationMessages, setValidationMessages] = useState<string[]>([]);
   const [saveMessage, setSaveMessage] = useState('');
   const [saving, setSaving] = useState(false);
@@ -84,12 +105,13 @@ export function AdminPostEditor() {
       slug,
       category,
       tags: selectedTags,
+      status: postStatus,
       thumbnailUrl: thumbnailUrl || fallbackThumbnailUrl,
       heroImageUrl,
       previewMedia: previewMedia.map(toStoredMedia),
       downloadLinks,
     }),
-    [category, downloadLinks, fallbackThumbnailUrl, heroImageUrl, previewMedia, selectedTags, slug, thumbnailUrl, title],
+    [category, downloadLinks, fallbackThumbnailUrl, heroImageUrl, postStatus, previewMedia, selectedTags, slug, thumbnailUrl, title],
   );
 
   const handleTitleChange = (value: string) => {
@@ -261,8 +283,12 @@ export function AdminPostEditor() {
     setPublishing(true);
 
     try {
-      await publishAdminPost(buildDraft('published'));
-      setSaveMessage('Post published. It is now available on the home page.');
+      await publishAdminPost(buildDraft(postStatus));
+      setSaveMessage(
+        mode === 'edit'
+          ? 'Content updated.'
+          : 'Post published. It is now available on the home page.',
+      );
     } catch (error) {
       setSaveMessage(error instanceof Error ? error.message : 'Post could not be published.');
     } finally {
@@ -326,10 +352,12 @@ export function AdminPostEditor() {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-950 dark:text-white">
-              New Post
+              {mode === 'edit' ? 'Edit Content' : 'New Post'}
             </h1>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Draft the content shape before wiring storage and database.
+              {mode === 'edit'
+                ? 'Update metadata, media, status, and download links.'
+                : 'Draft the content shape before publishing it to the site.'}
             </p>
           </div>
           <div className="grid gap-2 sm:flex">
@@ -357,7 +385,7 @@ export function AdminPostEditor() {
               className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-70"
             >
               <Send className="h-4 w-4" aria-hidden="true" />
-              {publishing ? 'Posting...' : 'Post'}
+              {publishing ? 'Saving...' : mode === 'edit' ? 'Save Changes' : 'Post'}
             </button>
           </div>
         </div>
@@ -436,6 +464,19 @@ export function AdminPostEditor() {
                         {item}
                       </option>
                     ))}
+                  </select>
+                </Field>
+                <Field label="Status">
+                  <select
+                    value={postStatus}
+                    onChange={(event) => {
+                      setPostStatus(event.target.value as AdminPostDraft['status']);
+                      clearFeedback();
+                    }}
+                    className={inputClassName}
+                  >
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
                   </select>
                 </Field>
                 <Field label="Photo Count">
@@ -600,10 +641,10 @@ export function AdminPostEditor() {
                     >
                       <GripVertical className="hidden h-4 w-4 text-slate-400 sm:block" aria-hidden="true" />
                       <div className="relative h-20 overflow-hidden rounded-md bg-slate-100 dark:bg-slate-800">
-                        {media.type === 'image' && media.objectUrl ? (
+                        {media.type === 'image' && (media.objectUrl || media.url) ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={media.objectUrl}
+                            src={media.objectUrl ?? media.url}
                             alt={media.alt || media.fileName}
                             className="h-full w-full object-cover"
                           />
@@ -672,6 +713,7 @@ export function AdminPostEditor() {
               </h2>
               <dl className="mt-4 space-y-3 text-sm">
                 <StatusRow label="Category" value={category} />
+                <StatusRow label="Status" value={postStatus} />
                 <StatusRow label="Tags" value={selectedTags.length.toString()} />
                 <StatusRow label="Preview Images" value={counts.images.toString()} />
                 <StatusRow label="Preview Videos" value={counts.videos.toString()} />
