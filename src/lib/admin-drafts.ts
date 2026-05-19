@@ -181,15 +181,14 @@ export async function uploadAdminMedia(
     body: formData,
   });
 
-  const payload = (await response.json().catch(() => null)) as {
-    error?: string;
-    path?: string;
-    source?: 'local' | 'supabase';
-    url?: string;
-  } | null;
+  const responseText = await response.text();
+  const payload = parseUploadResponse(responseText);
 
   if (!response.ok || !payload?.url) {
-    throw new Error(payload?.error ?? 'Unable to upload media.');
+    throw new Error(
+      payload?.error ??
+        `Unable to upload media. Server returned ${response.status}.`,
+    );
   }
 
   return {
@@ -197,6 +196,21 @@ export async function uploadAdminMedia(
     source: payload.source ?? 'local',
     url: payload.url,
   };
+}
+
+function parseUploadResponse(responseText: string) {
+  try {
+    return JSON.parse(responseText) as {
+      error?: string;
+      path?: string;
+      source?: 'local' | 'supabase';
+      url?: string;
+    };
+  } catch {
+    return responseText.trim()
+      ? { error: responseText.trim().slice(0, 240) }
+      : null;
+  }
 }
 
 export async function publishAdminPost(draft: AdminPostDraft) {
