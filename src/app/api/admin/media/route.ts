@@ -15,7 +15,7 @@ const localUploadsDirectory = path.join(
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
+    const formData = await readUploadFormData(request);
     const file = formData.get('file');
 
     if (!isUploadFile(file)) {
@@ -70,6 +70,17 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return Response.json({ error: getErrorMessage(error) }, { status: 500 });
+  }
+}
+
+async function readUploadFormData(request: Request) {
+  try {
+    return await request.formData();
+  } catch (error) {
+    throw new Error(
+      'Upload request was interrupted before the server could read the file. Try uploading fewer files at once, or use smaller/compressed media.',
+      { cause: error },
+    );
   }
 }
 

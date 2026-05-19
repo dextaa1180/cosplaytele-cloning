@@ -137,32 +137,38 @@ export function AdminPostEditor({
     clearFeedback();
 
     try {
-      const uploadedMedia = await Promise.all(
-        mediaFiles.map(async (file, index) => {
-          const type = file.type.startsWith('video/') ? 'video' : 'image';
-          const objectUrl = URL.createObjectURL(file);
-          const uploaded = await uploadAdminMedia(file, {
-            draftId,
-            kind: 'preview',
-            slug,
-          });
+      const startingOrder = previewMedia.length;
+      const uploadedMedia: DraftMedia[] = [];
 
-          return {
-            id: createDraftId(),
-            type,
-            fileName: file.name,
-            fileSize: file.size,
-            url: uploaded.url,
-            alt: file.name.replace(/\.[^.]+$/, ''),
-            duration: type === 'video' ? 'preview' : undefined,
-            sortOrder: previewMedia.length + index + 1,
-            storageStatus: 'uploaded',
-            objectUrl,
-          } satisfies DraftMedia;
-        }),
-      );
+      for (const file of mediaFiles) {
+        setSaveMessage(
+          `Uploading preview media ${uploadedMedia.length + 1} of ${mediaFiles.length}...`,
+        );
 
-      setPreviewMedia((current) => [...current, ...uploadedMedia]);
+        const type = file.type.startsWith('video/') ? 'video' : 'image';
+        const objectUrl = URL.createObjectURL(file);
+        const uploaded = await uploadAdminMedia(file, {
+          draftId,
+          kind: 'preview',
+          slug,
+        });
+        const media = {
+          id: createDraftId(),
+          type,
+          fileName: file.name,
+          fileSize: file.size,
+          url: uploaded.url,
+          alt: file.name.replace(/\.[^.]+$/, ''),
+          duration: type === 'video' ? 'preview' : undefined,
+          sortOrder: startingOrder + uploadedMedia.length + 1,
+          storageStatus: 'uploaded',
+          objectUrl,
+        } satisfies DraftMedia;
+
+        uploadedMedia.push(media);
+        setPreviewMedia((current) => [...current, media]);
+      }
+
       setSaveMessage(`${uploadedMedia.length} preview media uploaded.`);
     } catch (error) {
       setSaveMessage(error instanceof Error ? error.message : 'Preview media could not be uploaded.');
