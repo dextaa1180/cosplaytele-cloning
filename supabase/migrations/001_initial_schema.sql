@@ -1,6 +1,5 @@
 -- Tunacosplay application schema.
--- This file mirrors supabase/migrations/001_initial_schema.sql.
--- It creates the database logic only. It does not seed content.
+-- This migration creates the database logic only. It does not seed content.
 
 create extension if not exists pgcrypto;
 
