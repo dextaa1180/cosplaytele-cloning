@@ -37,7 +37,7 @@ export function BestCosplayerLayout() {
           {topCosplayers.map((cosplayer, index) => (
             <Link
               key={cosplayer.slug}
-              href={`/category/${cosplayer.slug}`}
+              href={`/cosplayer/${cosplayer.slug}`}
               className="group flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 transition-all hover:border-slate-300 hover:bg-white dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-lg font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-300">

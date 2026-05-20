@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ImageIcon, Play, Video } from 'lucide-react';
 import { PreviewMedia } from '@/types';
+import { getCosplayerSlug } from '@/lib/cosplayers';
 import { shouldBypassImageOptimizer } from '@/lib/media';
 
 interface DetailPostLayoutProps {
@@ -47,6 +48,7 @@ export function DetailPostLayout({
   thumbnail,
 }: DetailPostLayoutProps) {
   const heroImageSrc = heroImage || thumbnail;
+  const collectionSlug = cosplayerSlug || getCosplayerSlug(cosplayer);
   const sortedPreviewMedia = [...previewMedia].sort(
     (a, b) => a.sortOrder - b.sortOrder,
   );
@@ -101,10 +103,10 @@ export function DetailPostLayout({
                 <span className="text-sm font-medium text-neutral-400">
                   Cosplayer:{' '}
                 </span>
-                {cosplayerSlug ? (
+                {collectionSlug ? (
                   <Link
-                    href={`/category/${cosplayerSlug}`}
-                    className="text-sm font-semibold text-white hover:text-cyan-400"
+                    href={`/cosplayer/${collectionSlug}`}
+                    className="rounded-sm text-sm font-semibold text-cyan-300 underline decoration-cyan-400/50 underline-offset-4 transition hover:text-cyan-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
                   >
                     {cosplayer}
                   </Link>
