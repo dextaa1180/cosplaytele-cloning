@@ -6,6 +6,7 @@ import { ImageIcon, Play, Video } from 'lucide-react';
 import { PreviewMedia } from '@/types';
 import { getCosplayerSlug } from '@/lib/cosplayers';
 import { shouldBypassImageOptimizer } from '@/lib/media';
+import { getSourceSlug } from '@/lib/sources';
 
 interface DetailPostLayoutProps {
   title: string;
@@ -49,6 +50,7 @@ export function DetailPostLayout({
 }: DetailPostLayoutProps) {
   const heroImageSrc = heroImage || thumbnail;
   const collectionSlug = cosplayerSlug || getCosplayerSlug(cosplayer);
+  const sourceCollectionSlug = getSourceSlug(source);
   const sortedPreviewMedia = [...previewMedia].sort(
     (a, b) => a.sortOrder - b.sortOrder,
   );
@@ -131,9 +133,18 @@ export function DetailPostLayout({
                 <span className="text-sm font-medium text-neutral-400">
                   Appear In:{' '}
                 </span>
-                <span className="text-sm font-semibold text-white">
-                  {source}
-                </span>
+                {sourceCollectionSlug ? (
+                  <Link
+                    href={`/source/${sourceCollectionSlug}`}
+                    className="rounded-sm text-sm font-semibold text-cyan-300 underline decoration-cyan-400/50 underline-offset-4 transition hover:text-cyan-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+                  >
+                    {source}
+                  </Link>
+                ) : (
+                  <span className="text-sm font-semibold text-white">
+                    {source}
+                  </span>
+                )}
               </div>
               <div>
                 <span className="text-sm font-medium text-neutral-400">
