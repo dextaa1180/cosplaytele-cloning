@@ -1,6 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { posts as staticPosts } from '@/data/posts';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
 import { getSupabaseAdminClient } from '@/lib/supabase/server';
 import type { Post } from '@/types';
@@ -58,9 +57,7 @@ const fallbackThumbnail = '/images/tunacosplay/fox-cutie.svg';
 
 export async function getPublishedPosts() {
   const supabasePosts = await listSupabasePublishedPosts();
-  const localPosts = supabasePosts ?? (await readLocalPublishedPosts());
-
-  return mergePosts(localPosts, staticPosts);
+  return supabasePosts ?? (await readLocalPublishedPosts());
 }
 
 export async function getManagedPosts() {
@@ -89,7 +86,7 @@ export async function getManagedPostById(id: string) {
 export async function publishAdminDraft(draft: AdminPostDraft) {
   const supabasePosts = await publishSupabasePost(draft);
   if (supabasePosts) {
-    return mergePosts(supabasePosts, staticPosts);
+    return supabasePosts;
   }
 
   const publishedPosts = await readLocalPublishedPosts();
@@ -103,7 +100,7 @@ export async function publishAdminDraft(draft: AdminPostDraft) {
       publishedPosts.splice(existingIndex, 1);
     }
     await writeLocalPublishedPosts(publishedPosts);
-    return mergePosts(publishedPosts, staticPosts);
+    return publishedPosts;
   }
 
   if (existingIndex >= 0) {
@@ -115,7 +112,7 @@ export async function publishAdminDraft(draft: AdminPostDraft) {
   await writeLocalPublishedPosts(publishedPosts);
   await removeLocalDraft(draft.id);
 
-  return mergePosts(publishedPosts, staticPosts);
+  return publishedPosts;
 }
 
 export async function deletePublishedPost(id: string) {
@@ -484,14 +481,6 @@ function normalizePublicMediaUrl(url: string | null | undefined) {
   }
 
   return url.replace(/^http:\/\/kong:8000(?=\/storage\/v1\/)/, publicBaseUrl);
-}
-
-function mergePosts(primaryPosts: Post[], fallbackPosts: Post[]) {
-  const seenSlugs = new Set(primaryPosts.map((post) => post.slug));
-  return [
-    ...primaryPosts,
-    ...fallbackPosts.filter((post) => !seenSlugs.has(post.slug)),
-  ];
 }
 
 function isNotFoundError(error: unknown) {
