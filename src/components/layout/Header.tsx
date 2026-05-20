@@ -9,14 +9,19 @@ export function Header() {
     <header className="w-full border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="text-2xl font-bold text-slate-900 dark:text-white">
+          <div className="flex w-full items-center justify-center sm:w-auto sm:justify-start">
+            <Link
+              href="/"
+              className="text-center text-2xl font-bold text-slate-900 dark:text-white"
+            >
               Tunacosplay
             </Link>
           </div>
-          <Suspense fallback={<SearchBoxFallback />}>
-            <SearchBox />
-          </Suspense>
+          <div className="w-full sm:w-auto">
+            <Suspense fallback={<SearchBoxFallback />}>
+              <SearchBox />
+            </Suspense>
+          </div>
         </div>
       </div>
     </header>

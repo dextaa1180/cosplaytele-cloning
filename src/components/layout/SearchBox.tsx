@@ -122,7 +122,7 @@ export function SearchBox() {
   };
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-sm">
+    <div ref={wrapperRef} className="relative w-full sm:max-w-sm">
       <form
         onSubmit={(event) => handleSubmit(event)}
         className={cn(
