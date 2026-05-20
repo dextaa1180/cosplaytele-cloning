@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { shouldBypassImageOptimizer } from '@/lib/media';
 import { cn } from '@/lib/utils';
@@ -115,12 +115,6 @@ export function SearchBox() {
     router.push(searchHref);
   };
 
-  const clearSearch = () => {
-    setQuery('');
-    setResults([]);
-    setFocused(false);
-  };
-
   return (
     <div ref={wrapperRef} className="relative w-full sm:max-w-sm">
       <form
@@ -140,16 +134,6 @@ export function SearchBox() {
           placeholder="Search..."
           className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-500 dark:text-white dark:placeholder:text-slate-400"
         />
-        {query && (
-          <button
-            type="button"
-            onClick={clearSearch}
-            className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600"
-            aria-label="Clear search"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        )}
         <button
           type="submit"
           className="inline-flex h-8 w-8 items-center justify-center rounded-full text-rose-600 transition hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-slate-800"
