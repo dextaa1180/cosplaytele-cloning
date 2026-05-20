@@ -35,7 +35,7 @@ export interface AdminPostDraft {
   downloadLinks: {
     mediafire: string;
     telegram: string;
-    sorafolder: string;
+    terabox: string;
     gofile: string;
   };
   previewMedia: AdminDraftMedia[];

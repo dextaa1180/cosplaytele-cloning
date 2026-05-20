@@ -32,7 +32,7 @@ The current frontend is designed to support admin-managed content uploads. This 
 ### Download Links (Optional)
 - **Mediafire** — Mediafire download URL
 - **Telegram** — Telegram channel/file URL
-- **SoraFolder** — SoraFolder download URL
+- **Terabox** — Terabox download URL
 - **Gofile** — Gofile download URL
 
 **Note:** If no download links are provided, the detail page shows: "Download links will be added from the admin dashboard."
@@ -84,7 +84,7 @@ The current frontend is designed to support admin-managed content uploads. This 
 ## Download Link Handling
 
 ### Admin Input
-- Admin provides download URLs for Mediafire, Telegram, SoraFolder, Gofile
+- Admin provides download URLs for Mediafire, Telegram, Terabox, Gofile
 - URLs are validated (must be valid HTTP/HTTPS URLs)
 - URLs are stored in `downloadLinks` object
 
@@ -217,7 +217,7 @@ CREATE TABLE preview_media (
 CREATE TABLE download_links (
   id SERIAL PRIMARY KEY,
   post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
-  provider VARCHAR(50) NOT NULL, -- 'mediafire', 'telegram', 'sorafolder', 'gofile'
+  provider VARCHAR(50) NOT NULL, -- 'mediafire', 'telegram', 'terabox', 'gofile'
   url TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -241,7 +241,7 @@ CREATE TABLE download_links (
 - **Media Optimization** - Auto-resize images and compress preview videos on upload
 
 ### Download Link Management
-- **Add Links** — Form to add Mediafire, Telegram, SoraFolder, Gofile URLs
+- **Add Links** — Form to add Mediafire, Telegram, Terabox, Gofile URLs
 - **Validate Links** — Check URLs are valid HTTP/HTTPS
 - **Remove Links** — Delete download links
 

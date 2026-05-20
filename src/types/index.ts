@@ -32,7 +32,7 @@ export interface Post {
   downloadLinks?: {
     mediafire?: string;
     telegram?: string;
-    sorafolder?: string;
+    terabox?: string;
     gofile?: string;
   };
   previewMedia?: PreviewMedia[];

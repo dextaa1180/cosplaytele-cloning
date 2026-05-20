@@ -78,7 +78,7 @@ export function AdminPostEditor({
   const [downloadLinks, setDownloadLinks] = useState({
     mediafire: initialDraft?.downloadLinks.mediafire ?? '',
     telegram: initialDraft?.downloadLinks.telegram ?? '',
-    sorafolder: initialDraft?.downloadLinks.sorafolder ?? '',
+    terabox: initialDraft?.downloadLinks.terabox ?? '',
     gofile: initialDraft?.downloadLinks.gofile ?? '',
   });
   const [previewMedia, setPreviewMedia] = useState<DraftMedia[]>(
@@ -790,7 +790,7 @@ const downloadLinkFields: Array<{
 }> = [
   { key: 'mediafire', label: 'Mediafire' },
   { key: 'telegram', label: 'Telegram' },
-  { key: 'sorafolder', label: 'SoraFolder' },
+  { key: 'terabox', label: 'Terabox' },
   { key: 'gofile', label: 'Gofile' },
 ];
 

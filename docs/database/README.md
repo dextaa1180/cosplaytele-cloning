@@ -5,10 +5,11 @@ logic on a fresh Supabase/Postgres instance. It creates tables, indexes,
 triggers, RLS read policies, and the public `tunacosplay-media` storage bucket.
 It does not insert post content.
 
-The canonical migration is:
+The canonical migrations are:
 
 ```text
 supabase/migrations/001_initial_schema.sql
+supabase/migrations/002_replace_sorafolder_with_terabox.sql
 ```
 
 `docs/database/supabase-schema.sql` mirrors that migration for manual SQL
@@ -20,6 +21,7 @@ After Supabase self-hosted is running, apply the schema from the project root:
 
 ```bash
 cat supabase/migrations/001_initial_schema.sql | docker exec -i supabase-db psql -U postgres postgres
+cat supabase/migrations/002_replace_sorafolder_with_terabox.sql | docker exec -i supabase-db psql -U postgres postgres
 ```
 
 Or paste `docs/database/supabase-schema.sql` into the Supabase SQL Editor.

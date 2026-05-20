@@ -22,7 +22,7 @@ interface DetailPostLayoutProps {
   downloadLinks?: {
     mediafire?: string;
     telegram?: string;
-    sorafolder?: string;
+    terabox?: string;
     gofile?: string;
   };
   previewMedia?: PreviewMedia[];
@@ -180,7 +180,7 @@ export function DetailPostLayout({
 
         {/* Download Section */}
         <div className="mb-12 rounded-lg bg-neutral-800 p-6">
-          {downloadLinks && (downloadLinks.mediafire || downloadLinks.telegram || downloadLinks.sorafolder || downloadLinks.gofile) ? (
+          {downloadLinks && (downloadLinks.mediafire || downloadLinks.telegram || downloadLinks.terabox || downloadLinks.gofile) ? (
             <>
               <p className="mb-6 text-sm text-neutral-300">
                 Enjoy better photo with large size and no copyright, please download
@@ -204,12 +204,12 @@ export function DetailPostLayout({
                     Download Telegram
                   </a>
                 )}
-                {downloadLinks.sorafolder && (
+                {downloadLinks.terabox && (
                   <a
-                    href={downloadLinks.sorafolder}
+                    href={downloadLinks.terabox}
                     className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
                   >
-                    Download SoraFolder
+                    Download Terabox
                   </a>
                 )}
                 {downloadLinks.gofile && (

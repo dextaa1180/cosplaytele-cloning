@@ -23,7 +23,7 @@ export const posts: Post[] = [
     downloadLinks: {
       mediafire: '#',
       telegram: '#',
-      sorafolder: '#',
+      terabox: '#',
       gofile: '#',
     },
     previewMedia: [

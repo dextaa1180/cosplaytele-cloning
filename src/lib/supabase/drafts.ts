@@ -35,7 +35,7 @@ type PreviewMediaRow = {
 };
 
 type DownloadLinkRow = {
-  provider: 'mediafire' | 'telegram' | 'sorafolder' | 'gofile';
+  provider: 'mediafire' | 'telegram' | 'terabox' | 'gofile' | 'sorafolder';
   url: string;
 };
 
@@ -193,7 +193,10 @@ function rowToDraft(row: DraftPostRow): AdminPostDraft {
     downloadLinks: {
       mediafire: row.download_links.find((link) => link.provider === 'mediafire')?.url ?? '',
       telegram: row.download_links.find((link) => link.provider === 'telegram')?.url ?? '',
-      sorafolder: row.download_links.find((link) => link.provider === 'sorafolder')?.url ?? '',
+      terabox:
+        row.download_links.find(
+          (link) => link.provider === 'terabox' || link.provider === 'sorafolder',
+        )?.url ?? '',
       gofile: row.download_links.find((link) => link.provider === 'gofile')?.url ?? '',
     },
     previewMedia: row.preview_media

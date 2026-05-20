@@ -34,7 +34,7 @@ type PublishedPostRow = {
   views_3d: number;
   views_7d: number;
   download_links: Array<{
-    provider: 'mediafire' | 'telegram' | 'sorafolder' | 'gofile';
+    provider: 'mediafire' | 'telegram' | 'terabox' | 'gofile' | 'sorafolder';
     url: string;
   }> | null;
   preview_media: Array<{
@@ -150,7 +150,7 @@ export function managedPostToDraft(post: ManagedPost): AdminPostDraft {
     downloadLinks: {
       mediafire: post.downloadLinks?.mediafire ?? '',
       telegram: post.downloadLinks?.telegram ?? '',
-      sorafolder: post.downloadLinks?.sorafolder ?? '',
+      terabox: post.downloadLinks?.terabox ?? '',
       gofile: post.downloadLinks?.gofile ?? '',
     },
     previewMedia: (post.previewMedia ?? []).map((media) => ({
@@ -464,7 +464,7 @@ function downloadLinksToPost(rowLinks: NonNullable<PublishedPostRow['download_li
   return rowLinks.reduce<Post['downloadLinks']>(
     (links, link) => ({
       ...links,
-      [link.provider]: link.url,
+      [link.provider === 'sorafolder' ? 'terabox' : link.provider]: link.url,
     }),
     {},
   );

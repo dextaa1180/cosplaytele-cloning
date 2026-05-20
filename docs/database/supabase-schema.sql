@@ -70,7 +70,7 @@ create table if not exists public.download_links (
   id uuid primary key default gen_random_uuid(),
   post_id uuid not null references public.posts(id) on delete cascade,
   provider text not null check (
-    provider in ('mediafire', 'telegram', 'sorafolder', 'gofile')
+    provider in ('mediafire', 'telegram', 'terabox', 'gofile')
   ),
   url text not null,
   created_at timestamptz not null default now(),
