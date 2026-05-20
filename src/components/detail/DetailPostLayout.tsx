@@ -51,6 +51,13 @@ export function DetailPostLayout({
   const heroImageSrc = heroImage || thumbnail;
   const collectionSlug = cosplayerSlug || getCosplayerSlug(cosplayer);
   const sourceCollectionSlug = getSourceSlug(source);
+  const cleanDescription = description?.trim();
+  const hasDownloadLinks = Boolean(
+    downloadLinks?.mediafire ||
+      downloadLinks?.telegram ||
+      downloadLinks?.terabox ||
+      downloadLinks?.gofile,
+  );
   const sortedPreviewMedia = [...previewMedia].sort(
     (a, b) => a.sortOrder - b.sortOrder,
   );
@@ -178,9 +185,8 @@ export function DetailPostLayout({
           </div>
         </div>
 
-        {/* Download Section */}
-        <div className="mb-12 rounded-lg bg-neutral-800 p-6">
-          {downloadLinks && (downloadLinks.mediafire || downloadLinks.telegram || downloadLinks.terabox || downloadLinks.gofile) ? (
+        {hasDownloadLinks && downloadLinks && (
+          <div className="mb-12 rounded-lg bg-neutral-800 p-6">
             <>
               <p className="mb-6 text-sm text-neutral-300">
                 Enjoy better photo with large size and no copyright, please download
@@ -222,12 +228,8 @@ export function DetailPostLayout({
                 )}
               </div>
             </>
-          ) : (
-            <p className="text-center text-sm text-neutral-400">
-              Download links will be added from the admin dashboard.
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Preview Section */}
         <div>
@@ -278,17 +280,14 @@ export function DetailPostLayout({
                   unoptimized={shouldBypassImageOptimizer(thumbnail)}
                 />
               </div>
-              <p className="text-sm text-neutral-400">
-                Preview media will be managed from the admin dashboard.
-              </p>
             </div>
           )}
 
-          <div className="rounded-lg border border-neutral-700 bg-neutral-800 p-4">
-            <p className="text-sm text-neutral-300">
-              {description || 'Preview only. Full gallery/download content is not hosted in this clone. Content will be managed from the admin dashboard.'}
-            </p>
-          </div>
+          {cleanDescription && (
+            <div className="rounded-lg border border-neutral-700 bg-neutral-800 p-4">
+              <p className="text-sm text-neutral-300">{cleanDescription}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

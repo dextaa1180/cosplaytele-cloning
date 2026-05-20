@@ -64,7 +64,7 @@ export const posts: Post[] = [
       },
     ],
     heroImage: '/images/tunacosplay/mihara-3.svg',
-    description: 'Preview only. Full gallery/download content is not hosted in this clone.',
+    description: 'Preview gallery available below.',
   },
   {
     id: '2',
