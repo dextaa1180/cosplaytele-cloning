@@ -49,7 +49,7 @@ export function AdminShell({ children }: AdminShellProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <div className="min-h-screen overflow-x-hidden bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-white">
       <div className="lg:hidden">
         <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950">
           <Link href={ADMIN_DASHBOARD_PATH} className="text-base font-bold">
@@ -137,8 +137,8 @@ export function AdminShell({ children }: AdminShellProps) {
         />
       )}
 
-      <main className="min-h-screen lg:pl-72">
-        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="min-h-screen min-w-0 overflow-x-hidden lg:pl-72">
+        <div className="mx-auto w-full max-w-7xl min-w-0 px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </div>
       </main>

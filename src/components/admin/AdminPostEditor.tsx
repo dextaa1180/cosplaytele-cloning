@@ -374,10 +374,10 @@ export function AdminPostEditor({
   };
 
   return (
-    <div className="w-full bg-slate-50 dark:bg-slate-950">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+    <div className="w-full min-w-0 overflow-x-hidden bg-slate-50 dark:bg-slate-950">
+      <div className="mx-auto max-w-7xl min-w-0 px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold text-slate-950 dark:text-white">
               {mode === 'edit' ? 'Edit Content' : 'New Post'}
             </h1>
@@ -387,7 +387,7 @@ export function AdminPostEditor({
                 : 'Draft the content shape before publishing it to the site.'}
             </p>
           </div>
-          <div className="grid gap-2 sm:flex">
+          <div className="grid min-w-0 gap-2 sm:flex">
             <button
               type="button"
               onClick={handleValidate}
@@ -417,13 +417,13 @@ export function AdminPostEditor({
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <form className="space-y-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <form className="min-w-0 space-y-6">
+            <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <h2 className="mb-4 text-base font-semibold text-slate-950 dark:text-white">
                 Metadata
               </h2>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid min-w-0 gap-4 md:grid-cols-2">
                 <Field label="Title">
                   <input
                     value={title}
@@ -589,11 +589,11 @@ export function AdminPostEditor({
               </div>
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <h2 className="mb-4 text-base font-semibold text-slate-950 dark:text-white">
                 Cover Media
               </h2>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid min-w-0 gap-4 md:grid-cols-2">
                 <UploadBox
                   label="Thumbnail"
                   accept="image/*"
@@ -609,7 +609,7 @@ export function AdminPostEditor({
                   onChange={(file) => void handleCoverUpload(file, 'hero')}
                 />
               </div>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
                 <Field label="Thumbnail URL">
                   <input
                     value={thumbnailUrl}
@@ -635,7 +635,7 @@ export function AdminPostEditor({
               </div>
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-base font-semibold text-slate-950 dark:text-white">
@@ -659,12 +659,12 @@ export function AdminPostEditor({
                 </label>
               </div>
 
-              <div className="space-y-3">
+              <div className="min-w-0 space-y-3">
                 {previewMedia.length > 0 ? (
                   previewMedia.map((media) => (
                     <div
                       key={media.id}
-                      className="grid gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-[auto_72px_minmax(0,1fr)_auto] sm:items-center dark:border-slate-800"
+                      className="grid min-w-0 gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-[auto_72px_minmax(0,1fr)_auto] sm:items-center dark:border-slate-800"
                     >
                       <GripVertical className="hidden h-4 w-4 text-slate-400 sm:block" aria-hidden="true" />
                       <div className="relative h-20 overflow-hidden rounded-md bg-slate-100 dark:bg-slate-800">
@@ -709,14 +709,14 @@ export function AdminPostEditor({
               </div>
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <h2 className="mb-4 text-base font-semibold text-slate-950 dark:text-white">
                 Download Links
               </h2>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid min-w-0 gap-4 md:grid-cols-2">
                 {downloadLinkFields.map((field) => (
                   <Field key={field.key} label={field.label}>
-                    <div className="relative">
+                    <div className="relative min-w-0">
                       <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                       <input
                         value={downloadLinks[field.key]}
@@ -733,8 +733,8 @@ export function AdminPostEditor({
             </section>
           </form>
 
-          <aside className="space-y-4">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <aside className="min-w-0 space-y-4">
+            <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <h2 className="text-base font-semibold text-slate-950 dark:text-white">
                 Draft Status
               </h2>
@@ -766,11 +766,11 @@ export function AdminPostEditor({
               )}
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <h2 className="text-base font-semibold text-slate-950 dark:text-white">
                 Storage Shape
               </h2>
-              <pre className="mt-4 max-h-80 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-5 text-slate-100">
+              <pre className="mt-4 max-h-80 min-w-0 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-5 text-slate-100">
                 {JSON.stringify(storageShape, null, 2)}
               </pre>
             </div>
@@ -782,7 +782,7 @@ export function AdminPostEditor({
 }
 
 const inputClassName =
-  'h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-slate-500 dark:focus:ring-slate-800';
+  'h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-slate-500 dark:focus:ring-slate-800';
 
 const downloadLinkFields: Array<{
   key: keyof AdminPostDraft['downloadLinks'];
@@ -801,7 +801,7 @@ interface FieldProps {
 
 function Field({ children, label }: FieldProps) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
         {label}
       </span>
@@ -828,7 +828,7 @@ function UploadBox({
   return (
     <label
       className={cn(
-        'flex h-28 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 text-center transition dark:border-slate-700 dark:bg-slate-950',
+        'flex h-28 min-w-0 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 text-center transition dark:border-slate-700 dark:bg-slate-950',
         disabled
           ? 'cursor-not-allowed opacity-70'
           : 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900',
@@ -861,9 +861,11 @@ interface StatusRowProps {
 
 function StatusRow({ label, value }: StatusRowProps) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
-      <dd className="font-semibold text-slate-950 dark:text-white">{value}</dd>
+    <div className="flex min-w-0 items-center justify-between gap-4">
+      <dt className="shrink-0 text-slate-500 dark:text-slate-400">{label}</dt>
+      <dd className="min-w-0 break-words text-right font-semibold text-slate-950 dark:text-white">
+        {value}
+      </dd>
     </div>
   );
 }
