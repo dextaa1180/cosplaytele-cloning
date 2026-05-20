@@ -1,4 +1,5 @@
 import type { Post } from '@/types';
+import { safeDecodeURIComponent, slugifyText } from '@/lib/slug';
 
 export function getSourceSlug(name: string) {
   const asciiSlug = slugifySourceName(name);
@@ -25,20 +26,5 @@ function getSourceMatchKey(value: string) {
 }
 
 function slugifySourceName(name: string) {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/['"]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function safeDecodeURIComponent(value: string) {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
+  return slugifyText(name);
 }

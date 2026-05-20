@@ -1,4 +1,5 @@
 import type { Post } from '@/types';
+import { safeDecodeURIComponent, slugifyText } from '@/lib/slug';
 
 export interface CosplayerRanking {
   name: string;
@@ -74,20 +75,5 @@ function getCosplayerMatchKey(value: string) {
 }
 
 function slugifyCosplayerName(name: string) {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/['"]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function safeDecodeURIComponent(value: string) {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
+  return slugifyText(name);
 }

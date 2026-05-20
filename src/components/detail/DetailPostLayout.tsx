@@ -4,11 +4,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ImageIcon, Play, Video } from 'lucide-react';
 import { PreviewMedia } from '@/types';
+import {
+  ContentAnalyticsTracker,
+  sendAnalyticsEvent,
+} from '@/components/analytics/AnalyticsTracker';
 import { getCosplayerSlug } from '@/lib/cosplayers';
 import { shouldBypassImageOptimizer } from '@/lib/media';
 import { getSourceSlug } from '@/lib/sources';
 
 interface DetailPostLayoutProps {
+  postId: string;
   title: string;
   cosplayer: string;
   cosplayerSlug?: string;
@@ -32,6 +37,7 @@ interface DetailPostLayoutProps {
 }
 
 export function DetailPostLayout({
+  postId,
   title,
   cosplayer,
   cosplayerSlug,
@@ -64,6 +70,7 @@ export function DetailPostLayout({
 
   return (
     <div className="w-full bg-neutral-900 text-white">
+      <ContentAnalyticsTracker postId={postId} />
       {/* Hero Section */}
       <div className="relative h-[220px] w-full overflow-hidden md:h-[300px] lg:h-[340px]">
         {/* Background Image with Dark Overlay */}
@@ -197,6 +204,13 @@ export function DetailPostLayout({
                 {downloadLinks.mediafire && (
                   <a
                     href={downloadLinks.mediafire}
+                    onClick={() =>
+                      sendAnalyticsEvent({
+                        event: 'download',
+                        postId,
+                        provider: 'mediafire',
+                      })
+                    }
                     className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
                   >
                     Download Mediafire
@@ -205,6 +219,13 @@ export function DetailPostLayout({
                 {downloadLinks.telegram && (
                   <a
                     href={downloadLinks.telegram}
+                    onClick={() =>
+                      sendAnalyticsEvent({
+                        event: 'download',
+                        postId,
+                        provider: 'telegram',
+                      })
+                    }
                     className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
                   >
                     Download Telegram
@@ -213,6 +234,13 @@ export function DetailPostLayout({
                 {downloadLinks.terabox && (
                   <a
                     href={downloadLinks.terabox}
+                    onClick={() =>
+                      sendAnalyticsEvent({
+                        event: 'download',
+                        postId,
+                        provider: 'terabox',
+                      })
+                    }
                     className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
                   >
                     Download Terabox
@@ -221,6 +249,13 @@ export function DetailPostLayout({
                 {downloadLinks.gofile && (
                   <a
                     href={downloadLinks.gofile}
+                    onClick={() =>
+                      sendAnalyticsEvent({
+                        event: 'download',
+                        postId,
+                        provider: 'gofile',
+                      })
+                    }
                     className="w-full max-w-md rounded-full bg-red-600 px-6 py-3 text-center font-semibold uppercase tracking-wide text-white transition hover:bg-red-700 sm:w-auto sm:min-w-[280px]"
                   >
                     Download Gofile

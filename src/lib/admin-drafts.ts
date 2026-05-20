@@ -1,4 +1,5 @@
 import { ADMIN_API_BASE_PATH } from '@/lib/admin-auth';
+import { slugifyText } from '@/lib/slug';
 import { Category, Tag } from '@/types';
 
 export interface AdminDraftMedia {
@@ -48,12 +49,7 @@ export const ADMIN_DRAFTS_STORAGE_KEY = 'tunacosplay-admin-post-drafts';
 const ADMIN_DRAFTS_CHANGE_EVENT = 'tunacosplay-admin-post-drafts-change';
 
 export function slugifyTitle(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/['"]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  return slugifyText(value);
 }
 
 export function readAdminDrafts() {

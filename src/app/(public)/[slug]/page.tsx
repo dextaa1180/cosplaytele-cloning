@@ -25,6 +25,7 @@ export default async function DetailPage({ params }: DetailPageProps) {
 
   return (
     <DetailPostLayout
+      postId={post.id}
       title={post.title}
       cosplayer={post.cosplayer}
       character={post.character}

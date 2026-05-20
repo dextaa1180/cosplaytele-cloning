@@ -10,6 +10,7 @@ The canonical migrations are:
 ```text
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_replace_sorafolder_with_terabox.sql
+supabase/migrations/003_monitoring_analytics.sql
 ```
 
 `docs/database/supabase-schema.sql` mirrors that migration for manual SQL
@@ -22,6 +23,7 @@ After Supabase self-hosted is running, apply the schema from the project root:
 ```bash
 cat supabase/migrations/001_initial_schema.sql | docker exec -i supabase-db psql -U postgres postgres
 cat supabase/migrations/002_replace_sorafolder_with_terabox.sql | docker exec -i supabase-db psql -U postgres postgres
+cat supabase/migrations/003_monitoring_analytics.sql | docker exec -i supabase-db psql -U postgres postgres
 ```
 
 Or paste `docs/database/supabase-schema.sql` into the Supabase SQL Editor.
@@ -38,6 +40,7 @@ The schema creates the app database logic for:
 - `updated_at` triggers
 - public read policies for published content
 - public storage bucket `tunacosplay-media`
+- first-party monitoring tables for unique visits and download clicks
 
 After applying this migration, the admin dashboard can create new content again.
 Old post data is not restored unless you also restore a full database dump.
@@ -65,7 +68,10 @@ SUPABASE_URL=http://kong:8000
 SUPABASE_SERVICE_ROLE_KEY=...
 SUPABASE_STORAGE_BUCKET=tunacosplay-media
 PUBLIC_STORAGE_BASE_URL=https://tunacosplay.site
+ANALYTICS_SALT=optional-long-random-string
 ```
 
 The app keeps a `.data/` fallback for local development. Once Supabase env vars
 are set, admin drafts and published posts use Supabase automatically.
+`ANALYTICS_SALT` is optional, but recommended so visitor hashes cannot be
+recomputed from raw request data.
