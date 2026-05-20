@@ -47,6 +47,19 @@ interface MonitoringEventRow {
   provider: DownloadProvider;
 }
 
+interface MonitoringTimestampRow {
+  created_at?: string;
+  event_date?: string;
+  first_seen_at?: string;
+  visit_date?: string;
+}
+
+export interface MonitoringChartPoint {
+  downloads: number;
+  label: string;
+  visits: number;
+}
+
 export interface MonitoringContentItem {
   category: string;
   character: string;
@@ -61,6 +74,10 @@ export interface MonitoringContentItem {
 }
 
 export interface MonitoringSummary {
+  charts: {
+    daily: MonitoringChartPoint[];
+    hourly: MonitoringChartPoint[];
+  };
   configured: boolean;
   downloads: {
     today: number;
@@ -153,6 +170,10 @@ export async function getMonitoringSummary(): Promise<MonitoringSummary> {
   if (!supabase) {
     return {
       configured: false,
+      charts: {
+        daily: buildEmptyDailyChart(),
+        hourly: buildEmptyHourlyChart(),
+      },
       downloads: { month: 0, today: 0, week: 0 },
       topContent: [],
       visits: { month: 0, today: 0, week: 0 },
@@ -193,6 +214,7 @@ export async function getMonitoringSummary(): Promise<MonitoringSummary> {
 
   return {
     configured: true,
+    charts: await getMonitoringCharts(),
     downloads: {
       month: monthDownloads,
       today: todayDownloads,
@@ -204,6 +226,78 @@ export async function getMonitoringSummary(): Promise<MonitoringSummary> {
       today: todayVisits,
       week: weekVisits,
     },
+  };
+}
+
+async function getMonitoringCharts() {
+  const supabase = getSupabaseAdminClient();
+
+  if (!supabase) {
+    return {
+      daily: buildEmptyDailyChart(),
+      hourly: buildEmptyHourlyChart(),
+    };
+  }
+
+  const hourlyBuckets = buildHourlyBuckets();
+  const dailyBuckets = buildDailyBuckets();
+  const hourlyStart = hourlyBuckets[0]?.start.toISOString() ?? new Date().toISOString();
+  const dailyStart = dailyBuckets[0]?.dateKey ?? getDateKey(daysAgo(6));
+
+  const [
+    hourlyVisits,
+    hourlyDownloads,
+    dailyVisits,
+    dailyDownloads,
+  ] = await Promise.all([
+    supabase.from('site_visits').select('first_seen_at').gte('first_seen_at', hourlyStart),
+    supabase
+      .from('content_events')
+      .select('created_at')
+      .eq('event_type', 'download')
+      .gte('created_at', hourlyStart),
+    supabase.from('site_visits').select('visit_date').gte('visit_date', dailyStart),
+    supabase
+      .from('content_events')
+      .select('event_date')
+      .eq('event_type', 'download')
+      .gte('event_date', dailyStart),
+  ]);
+
+  for (const result of [hourlyVisits, hourlyDownloads, dailyVisits, dailyDownloads]) {
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+  }
+
+  const hourlyVisitCounts = countRowsByHour(
+    (hourlyVisits.data ?? []) as MonitoringTimestampRow[],
+    'first_seen_at',
+  );
+  const hourlyDownloadCounts = countRowsByHour(
+    (hourlyDownloads.data ?? []) as MonitoringTimestampRow[],
+    'created_at',
+  );
+  const dailyVisitCounts = countRowsByDate(
+    (dailyVisits.data ?? []) as MonitoringTimestampRow[],
+    'visit_date',
+  );
+  const dailyDownloadCounts = countRowsByDate(
+    (dailyDownloads.data ?? []) as MonitoringTimestampRow[],
+    'event_date',
+  );
+
+  return {
+    daily: dailyBuckets.map((bucket) => ({
+      downloads: dailyDownloadCounts.get(bucket.dateKey) ?? 0,
+      label: bucket.label,
+      visits: dailyVisitCounts.get(bucket.dateKey) ?? 0,
+    })),
+    hourly: hourlyBuckets.map((bucket) => ({
+      downloads: hourlyDownloadCounts.get(bucket.hourKey) ?? 0,
+      label: bucket.label,
+      visits: hourlyVisitCounts.get(bucket.hourKey) ?? 0,
+    })),
   };
 }
 
@@ -359,6 +453,103 @@ function shouldIgnorePath(path: string) {
 
 function getDateKey(date: Date) {
   return date.toISOString().slice(0, 10);
+}
+
+function buildEmptyHourlyChart() {
+  return buildHourlyBuckets().map((bucket) => ({
+    downloads: 0,
+    label: bucket.label,
+    visits: 0,
+  }));
+}
+
+function buildEmptyDailyChart() {
+  return buildDailyBuckets().map((bucket) => ({
+    downloads: 0,
+    label: bucket.label,
+    visits: 0,
+  }));
+}
+
+function buildHourlyBuckets() {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(now.getHours() - 23, 0, 0, 0);
+
+  return Array.from({ length: 24 }, (_, index) => {
+    const bucketStart = new Date(start);
+    bucketStart.setHours(start.getHours() + index);
+
+    return {
+      hourKey: getHourKey(bucketStart),
+      label: new Intl.DateTimeFormat('en-US', {
+        hour: '2-digit',
+        hour12: false,
+        minute: '2-digit',
+      }).format(bucketStart),
+      start: bucketStart,
+    };
+  });
+}
+
+function buildDailyBuckets() {
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = daysAgo(6 - index);
+    const dateKey = getDateKey(date);
+
+    return {
+      dateKey,
+      label: `${date.getMonth() + 1}/${date.getDate()}`,
+    };
+  });
+}
+
+function countRowsByHour(
+  rows: MonitoringTimestampRow[],
+  field: 'created_at' | 'first_seen_at',
+) {
+  const counts = new Map<string, number>();
+
+  for (const row of rows) {
+    const value = row[field];
+
+    if (!value) {
+      continue;
+    }
+
+    const hourKey = getHourKey(new Date(value));
+    counts.set(hourKey, (counts.get(hourKey) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+function countRowsByDate(
+  rows: MonitoringTimestampRow[],
+  field: 'event_date' | 'visit_date',
+) {
+  const counts = new Map<string, number>();
+
+  for (const row of rows) {
+    const value = row[field];
+
+    if (!value) {
+      continue;
+    }
+
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+function getHourKey(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+    String(date.getHours()).padStart(2, '0'),
+  ].join('-');
 }
 
 function daysAgo(days: number) {

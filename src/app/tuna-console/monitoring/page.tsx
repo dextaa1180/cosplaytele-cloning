@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Download, Eye, Flame, MousePointerClick, Users } from 'lucide-react';
 import {
   getMonitoringSummary,
+  type MonitoringChartPoint,
   type MonitoringContentItem,
   type MonitoringSummary,
 } from '@/lib/analytics';
@@ -83,6 +84,19 @@ export default async function MonitoringPage() {
         />
       </section>
 
+      <section className="grid gap-4 xl:grid-cols-2">
+        <LineChartCard
+          title="Last 24 Hours"
+          description="Unique visits and unique download clicks by hour."
+          points={summary.charts.hourly}
+        />
+        <LineChartCard
+          title="Last 7 Days"
+          description="Daily unique visits and download clicks."
+          points={summary.charts.daily}
+        />
+      </section>
+
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -140,6 +154,10 @@ async function loadMonitoringSummary() {
         getErrorMessage(error) ||
         'Monitoring belum siap. Jalankan migration analytics terlebih dahulu.',
       summary: {
+        charts: {
+          daily: [],
+          hourly: [],
+        },
         configured: true,
         downloads: { month: 0, today: 0, week: 0 },
         topContent: [],
@@ -177,6 +195,125 @@ function MetricCard({
         <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950 dark:text-cyan-300">
           <Icon className="h-5 w-5" aria-hidden="true" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function LineChartCard({
+  description,
+  points,
+  title,
+}: {
+  description: string;
+  points: MonitoringChartPoint[];
+  title: string;
+}) {
+  const chartPoints = points.length > 0 ? points : [{ downloads: 0, label: '', visits: 0 }];
+  const maxValue = getChartMax(chartPoints);
+  const gridValues = getGridValues(maxValue);
+  const gradientId = `chart-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-fill`;
+  const visitPath = buildLinePath(chartPoints, 'visits', maxValue);
+  const downloadPath = buildLinePath(chartPoints, 'downloads', maxValue);
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-bold text-slate-950 dark:text-white">
+              {title}
+            </h2>
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+          </div>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            {description}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-blue-600" />
+            visits
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-cyan-500" />
+            downloads
+          </span>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-lg bg-slate-50 p-3 dark:bg-slate-950">
+        <svg
+          viewBox="0 0 640 260"
+          className="h-64 w-full"
+          role="img"
+          aria-label={`${title} chart`}
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.16" />
+              <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {gridValues.map((value) => {
+            const y = chartY(value, maxValue);
+
+            return (
+              <g key={value}>
+                <line
+                  x1="44"
+                  x2="622"
+                  y1={y}
+                  y2={y}
+                  stroke="currentColor"
+                  className="text-slate-200 dark:text-slate-800"
+                />
+                <text
+                  x="30"
+                  y={y + 4}
+                  textAnchor="end"
+                  className="fill-slate-500 text-[11px] dark:fill-slate-400"
+                >
+                  {value}
+                </text>
+              </g>
+            );
+          })}
+          <path
+            d={`${visitPath} L ${chartX(chartPoints.length - 1, chartPoints.length)} 214 L 44 214 Z`}
+            fill={`url(#${gradientId})`}
+          />
+          <path
+            d={visitPath}
+            fill="none"
+            stroke="#2563eb"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="3"
+          />
+          <path
+            d={downloadPath}
+            fill="none"
+            stroke="#06b6d4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="3"
+          />
+          {chartPoints.map((point, index) => (
+            <g key={`${point.label}-${index}`}>
+              {(index === 0 || index === chartPoints.length - 1 || index % 3 === 0) && (
+                <text
+                  x={chartX(index, chartPoints.length)}
+                  y="242"
+                  textAnchor="middle"
+                  className="fill-slate-500 text-[11px] dark:fill-slate-400"
+                >
+                  {point.label}
+                </text>
+              )}
+            </g>
+          ))}
+        </svg>
       </div>
     </div>
   );
@@ -222,6 +359,52 @@ function DemandRow({ item }: { item: MonitoringContentItem }) {
         </Link>
       </td>
     </tr>
+  );
+}
+
+function buildLinePath(
+  points: MonitoringChartPoint[],
+  key: 'downloads' | 'visits',
+  maxValue: number,
+) {
+  return points
+    .map((point, index) => {
+      const command = index === 0 ? 'M' : 'L';
+      return `${command} ${chartX(index, points.length)} ${chartY(point[key], maxValue)}`;
+    })
+    .join(' ');
+}
+
+function chartX(index: number, total: number) {
+  const left = 44;
+  const width = 578;
+
+  if (total <= 1) {
+    return left;
+  }
+
+  return left + (width / (total - 1)) * index;
+}
+
+function chartY(value: number, maxValue: number) {
+  const top = 18;
+  const height = 196;
+  return top + height - (value / maxValue) * height;
+}
+
+function getChartMax(points: MonitoringChartPoint[]) {
+  const rawMax = Math.max(
+    1,
+    ...points.flatMap((point) => [point.downloads, point.visits]),
+  );
+  const magnitude = 10 ** Math.floor(Math.log10(rawMax));
+  return Math.ceil(rawMax / magnitude) * magnitude;
+}
+
+function getGridValues(maxValue: number) {
+  const step = Math.max(1, Math.ceil(maxValue / 4));
+  return [0, step, step * 2, step * 3, step * 4].filter(
+    (value) => value <= maxValue,
   );
 }
 
