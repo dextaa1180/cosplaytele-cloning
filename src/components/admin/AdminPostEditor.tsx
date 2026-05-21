@@ -29,6 +29,7 @@ type DraftMedia = AdminDraftMedia & {
 
 const categories: Category[] = ['cosplay', 'video-cosplayy', 'cosplay-ero', 'nude'];
 const tags: Tag[] = ['cosplay-game', 'cosplay-anime-manga', 'cosplay-freestyle', 'video'];
+const defaultSelectedTags: Tag[] = ['cosplay-game'];
 const compressibleImageTypes = new Set([
   'image/jpeg',
   'image/png',
@@ -45,8 +46,10 @@ export function AdminPostEditor({
   initialDraft,
   mode = 'create',
 }: AdminPostEditorProps = {}) {
-  const [draftId] = useState(() => initialDraft?.id ?? createDraftId());
-  const [createdAt] = useState(() => initialDraft?.createdAt ?? new Date().toISOString());
+  const [draftId, setDraftId] = useState(() => initialDraft?.id ?? createDraftId());
+  const [createdAt, setCreatedAt] = useState(
+    () => initialDraft?.createdAt ?? new Date().toISOString(),
+  );
   const [title, setTitle] = useState(initialDraft?.title ?? '');
   const [slug, setSlug] = useState(initialDraft?.slug ?? '');
   const [slugTouched, setSlugTouched] = useState(Boolean(initialDraft?.slug));
@@ -55,7 +58,7 @@ export function AdminPostEditor({
   const [source, setSource] = useState(initialDraft?.source ?? '');
   const [category, setCategory] = useState<Category>(initialDraft?.category ?? 'cosplay');
   const [selectedTags, setSelectedTags] = useState<Tag[]>(
-    initialDraft?.tags.length ? initialDraft.tags : ['cosplay-game'],
+    initialDraft?.tags.length ? initialDraft.tags : [...defaultSelectedTags],
   );
   const [postStatus, setPostStatus] = useState<AdminPostDraft['status']>(
     initialDraft?.status ?? 'published',
@@ -75,12 +78,9 @@ export function AdminPostEditor({
   );
   const [thumbnailUrl, setThumbnailUrl] = useState(initialDraft?.thumbnailUrl ?? '');
   const [heroImageUrl, setHeroImageUrl] = useState(initialDraft?.heroImageUrl ?? '');
-  const [downloadLinks, setDownloadLinks] = useState({
-    mediafire: initialDraft?.downloadLinks.mediafire ?? '',
-    telegram: initialDraft?.downloadLinks.telegram ?? '',
-    terabox: initialDraft?.downloadLinks.terabox ?? '',
-    gofile: initialDraft?.downloadLinks.gofile ?? '',
-  });
+  const [downloadLinks, setDownloadLinks] = useState(() =>
+    initialDraft?.downloadLinks ?? createEmptyDownloadLinks(),
+  );
   const [previewMedia, setPreviewMedia] = useState<DraftMedia[]>(
     () => initialDraft?.previewMedia ?? [],
   );
@@ -311,16 +311,49 @@ export function AdminPostEditor({
 
     try {
       await publishAdminPost(buildDraft(postStatus));
-      setSaveMessage(
-        mode === 'edit'
-          ? 'Content updated.'
-          : 'Post published. It is now available on the home page.',
-      );
+      if (mode === 'edit') {
+        setSaveMessage('Content updated.');
+      } else {
+        resetCreateForm();
+        setSaveMessage('Post published. The form is ready for a new post.');
+      }
     } catch (error) {
       setSaveMessage(error instanceof Error ? error.message : 'Post could not be published.');
     } finally {
       setPublishing(false);
     }
+  };
+
+  const resetCreateForm = () => {
+    previewMedia.forEach((media) => {
+      if (media.objectUrl) {
+        URL.revokeObjectURL(media.objectUrl);
+      }
+    });
+
+    setDraftId(createDraftId());
+    setCreatedAt(new Date().toISOString());
+    setTitle('');
+    setSlug('');
+    setSlugTouched(false);
+    setCosplayer('');
+    setCharacter('');
+    setSource('');
+    setCategory('cosplay');
+    setSelectedTags([...defaultSelectedTags]);
+    setPostStatus('published');
+    setPhotoCount(0);
+    setVideoCount(0);
+    setFileSize('');
+    setUnzipPassword('cosplaytele');
+    setDescription('');
+    setThumbnailName('');
+    setHeroName('');
+    setThumbnailUrl('');
+    setHeroImageUrl('');
+    setDownloadLinks(createEmptyDownloadLinks());
+    setPreviewMedia([]);
+    setValidationMessages([]);
   };
 
   const clearFeedback = () => {
@@ -876,6 +909,15 @@ function createDraftId() {
   }
 
   return `draft-${Date.now()}`;
+}
+
+function createEmptyDownloadLinks() {
+  return {
+    mediafire: '',
+    telegram: '',
+    terabox: '',
+    gofile: '',
+  };
 }
 
 async function compressImageForUpload(
