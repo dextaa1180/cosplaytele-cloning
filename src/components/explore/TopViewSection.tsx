@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Post } from '@/types';
-import { PostCard } from '@/components/PostCard';
+import { PostGrid } from '@/components/PostGrid';
 import { SectionTitle } from './SectionTitle';
 
 interface TopViewSectionProps {
@@ -60,11 +60,11 @@ export function TopViewSection({
       </div>
 
       {/* Posts Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {currentPosts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
-      </div>
+      <PostGrid
+        className="gap-6 lg:grid-cols-3 xl:grid-cols-4"
+        key={activeTab}
+        posts={currentPosts}
+      />
     </section>
   );
 }
