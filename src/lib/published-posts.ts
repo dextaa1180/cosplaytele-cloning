@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
+import { getSlugMatchKey } from '@/lib/slug';
 import { getSupabaseAdminClient } from '@/lib/supabase/server';
 import type { Post } from '@/types';
 
@@ -75,7 +76,9 @@ export async function getManagedPosts() {
 
 export async function getPublishedPostBySlug(slug: string) {
   const posts = await getPublishedPosts();
-  return posts.find((post) => post.slug === slug);
+  const slugMatchKey = getSlugMatchKey(slug);
+
+  return posts.find((post) => getSlugMatchKey(post.slug) === slugMatchKey);
 }
 
 export async function getManagedPostById(id: string) {
