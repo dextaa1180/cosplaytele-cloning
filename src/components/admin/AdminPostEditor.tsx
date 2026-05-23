@@ -92,6 +92,8 @@ export function AdminPostEditor({
     message: string;
     tone: UploadFeedbackTone;
   } | null>(null);
+  const [manualVideoUrl, setManualVideoUrl] = useState('');
+  const [manualVideoPosterUrl, setManualVideoPosterUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -298,6 +300,41 @@ export function AdminPostEditor({
       }));
     });
     clearFeedback();
+  };
+
+  const handleAddManualVideo = () => {
+    const normalizedUrl = normalizeDoodStreamEmbedUrl(manualVideoUrl);
+    if (!normalizedUrl) {
+      setPreviewUploadFeedback({
+        message: 'Enter a valid DoodStream video link or embed URL first.',
+        tone: 'error',
+      });
+      return;
+    }
+
+    const nextOrder = previewMedia.length + 1;
+    const manualVideo = {
+      id: createDraftId(),
+      type: 'video',
+      fileName: createManualVideoName(normalizedUrl),
+      fileSize: 0,
+      url: normalizedUrl,
+      posterUrl: manualVideoPosterUrl.trim() || undefined,
+      alt: `DoodStream video ${nextOrder}`,
+      duration: 'DoodStream',
+      sortOrder: nextOrder,
+      storageStatus: 'uploaded',
+    } satisfies DraftMedia;
+
+    setPreviewMedia((current) => [...current, manualVideo]);
+    setManualVideoUrl('');
+    setManualVideoPosterUrl('');
+    setPreviewUploadFeedback({
+      message: 'DoodStream video embed added to preview media.',
+      tone: 'success',
+    });
+    setValidationMessages([]);
+    setSaveMessage('');
   };
 
   const handleDownloadLinkChange = (
@@ -756,6 +793,40 @@ export function AdminPostEditor({
                 </div>
               )}
 
+              <div className="mb-4 grid min-w-0 gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end dark:border-slate-800 dark:bg-slate-950">
+                <Field label="DoodStream video URL">
+                  <input
+                    value={manualVideoUrl}
+                    onChange={(event) => {
+                      setManualVideoUrl(event.target.value);
+                      setValidationMessages([]);
+                      setPreviewUploadFeedback(null);
+                    }}
+                    className={inputClassName}
+                    placeholder="https://dood.to/e/..."
+                  />
+                </Field>
+                <Field label="Poster URL">
+                  <input
+                    value={manualVideoPosterUrl}
+                    onChange={(event) => {
+                      setManualVideoPosterUrl(event.target.value);
+                      setValidationMessages([]);
+                      setPreviewUploadFeedback(null);
+                    }}
+                    className={inputClassName}
+                    placeholder="Optional splash image URL"
+                  />
+                </Field>
+                <button
+                  type="button"
+                  onClick={handleAddManualVideo}
+                  className="h-10 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-cyan-600 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
+                >
+                  Add Video
+                </button>
+              </div>
+
               <div className="min-w-0 space-y-3">
                 {previewMedia.length > 0 ? (
                   previewMedia.map((media) => (
@@ -783,7 +854,7 @@ export function AdminPostEditor({
                           {media.fileName}
                         </p>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          {media.type} / {formatBytes(media.fileSize)} / order {media.sortOrder} / {media.storageStatus}
+                          {media.type} / {media.fileSize > 0 ? formatBytes(media.fileSize) : 'external'} / order {media.sortOrder} / {media.storageStatus}
                         </p>
                       </div>
                       <button
@@ -982,6 +1053,47 @@ function createEmptyDownloadLinks() {
     terabox: '',
     gofile: '',
   };
+}
+
+function normalizeDoodStreamEmbedUrl(value: string) {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return '';
+  }
+
+  try {
+    const url = new URL(trimmedValue);
+    const hostname = url.hostname.replace(/^www\./, '');
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    const fileCode = pathParts[pathParts.length - 1] ?? '';
+
+    if (!fileCode) {
+      return '';
+    }
+
+    if (
+      hostname === 'dood.to' ||
+      hostname === 'doodstream.com' ||
+      hostname.endsWith('.doodstream.com') ||
+      hostname.startsWith('dood.')
+    ) {
+      return `https://dood.to/e/${fileCode}`;
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
+}
+
+function createManualVideoName(embedUrl: string) {
+  try {
+    const url = new URL(embedUrl);
+    const fileCode = url.pathname.split('/').filter(Boolean).pop();
+    return fileCode ? `doodstream-${fileCode}` : 'doodstream-video';
+  } catch {
+    return 'doodstream-video';
+  }
 }
 
 async function compressImageForUpload(
