@@ -12,6 +12,16 @@ const localUploadsDirectory = path.join(
   'tunacosplay',
 );
 
+interface DoodStreamUploadResult {
+  filecode?: string;
+  protected_embed?: string;
+  protected_dl?: string;
+  download_url?: string;
+  single_img?: string;
+  splash_img?: string;
+  title?: string;
+}
+
 export async function POST(request: Request) {
   try {
     if (request.headers.get('x-tunacosplay-upload') === 'raw') {
@@ -39,6 +49,11 @@ export async function POST(request: Request) {
     const fileName = createStoredFileName(kind, file.name);
     const storagePath = `${scope}/${fileName}`;
     const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+    if (shouldUploadToDoodStream(kind, file.type)) {
+      const doodStreamMedia = await uploadToDoodStream(fileBuffer, fileName, file.type);
+      return Response.json(doodStreamMedia);
+    }
 
     if (isSupabaseStorageConfigured()) {
       const bucket = getStorageBucket();
@@ -99,6 +114,15 @@ async function uploadRawMedia(request: Request) {
     );
   }
 
+  if (shouldUploadToDoodStream(kind, contentType)) {
+    const doodStreamMedia = await uploadToDoodStream(
+      fileBuffer,
+      storedFileName,
+      contentType,
+    );
+    return Response.json(doodStreamMedia);
+  }
+
   if (isSupabaseStorageConfigured()) {
     const bucket = getStorageBucket();
     await uploadToSupabaseStorage(storagePath, contentType, fileBuffer);
@@ -137,6 +161,90 @@ function isSupabaseStorageConfigured() {
 
 function getStorageBucket() {
   return process.env.SUPABASE_STORAGE_BUCKET || 'tunacosplay-media';
+}
+
+function getDoodStreamApiKey() {
+  return process.env.DOODSTREAM_API_KEY?.trim() || '';
+}
+
+function shouldUploadToDoodStream(kind: string, contentType: string) {
+  return kind === 'preview' && contentType.startsWith('video/') && Boolean(getDoodStreamApiKey());
+}
+
+async function uploadToDoodStream(
+  fileBuffer: Buffer,
+  fileName: string,
+  contentType: string,
+) {
+  const apiKey = getDoodStreamApiKey();
+  if (!apiKey) {
+    throw new Error('DoodStream API key is not configured.');
+  }
+
+  const uploadServerResponse = await fetch(
+    `https://doodapi.co/api/upload/server?key=${encodeURIComponent(apiKey)}`,
+    { cache: 'no-store' },
+  );
+  const uploadServerPayload = await parseDoodStreamResponse<string>(uploadServerResponse);
+  const uploadServer = uploadServerPayload.result?.trim();
+
+  if (!uploadServer) {
+    throw new Error(uploadServerPayload.message || 'DoodStream upload server is unavailable.');
+  }
+
+  const formData = new FormData();
+  formData.append('api_key', apiKey);
+  formData.append(
+    'file',
+    new Blob([new Uint8Array(fileBuffer)], { type: contentType }),
+    fileName,
+  );
+
+  const separator = uploadServer.includes('?') ? '&' : '?';
+  const uploadResponse = await fetch(
+    `${uploadServer}${separator}${encodeURIComponent(apiKey)}`,
+    {
+      body: formData,
+      method: 'POST',
+    },
+  );
+  const uploadPayload = await parseDoodStreamResponse<DoodStreamUploadResult[]>(
+    uploadResponse,
+  );
+  const result = uploadPayload.result?.[0];
+  const embedUrl = result?.protected_embed || result?.download_url;
+
+  if (!embedUrl) {
+    throw new Error(uploadPayload.message || 'DoodStream did not return an embed URL.');
+  }
+
+  return {
+    fileCode: result?.filecode ?? '',
+    path: result?.filecode ?? '',
+    posterUrl: result?.splash_img || result?.single_img || '',
+    source: 'doodstream',
+    url: embedUrl,
+  };
+}
+
+async function parseDoodStreamResponse<T>(response: Response) {
+  const responseText = await response.text();
+  let payload: { msg?: string; result?: T; status?: number };
+
+  try {
+    payload = JSON.parse(responseText) as { msg?: string; result?: T; status?: number };
+  } catch {
+    throw new Error(responseText.trim().slice(0, 240) || 'DoodStream returned an invalid response.');
+  }
+
+  if (!response.ok || payload.status !== 200) {
+    throw new Error(payload.msg || `DoodStream request failed with status ${response.status}.`);
+  }
+
+  return {
+    message: payload.msg,
+    result: payload.result,
+  };
 }
 
 async function uploadToSupabaseStorage(

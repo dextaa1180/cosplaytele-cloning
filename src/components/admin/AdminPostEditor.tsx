@@ -189,7 +189,9 @@ export function AdminPostEditor({
           kind: 'preview',
           onUploadProgress: ({ loaded, percent, total }) => {
             setPreviewStatus(
-              `Uploading preview media ${uploadedMedia.length + 1} of ${mediaFiles.length}: ${formatBytes(loaded)} / ${formatBytes(total)} (${percent}%).`,
+              percent >= 100
+                ? `Preview media ${uploadedMedia.length + 1} of ${mediaFiles.length}: ${formatBytes(total)} sent to server (100%). Waiting for storage provider...`
+                : `Uploading preview media ${uploadedMedia.length + 1} of ${mediaFiles.length}: ${formatBytes(loaded)} / ${formatBytes(total)} (${percent}%).`,
             );
           },
           slug,
@@ -200,6 +202,7 @@ export function AdminPostEditor({
           fileName: uploadFile.name,
           fileSize: uploadFile.size,
           url: uploaded.url,
+          posterUrl: uploaded.posterUrl,
           alt: uploadFile.name.replace(/\.[^.]+$/, ''),
           duration:
             type === 'video'

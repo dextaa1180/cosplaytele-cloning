@@ -175,8 +175,10 @@ export async function uploadAdminMedia(
   },
 ) {
   return new Promise<{
+    fileCode?: string;
     path: string;
-    source: 'local' | 'supabase';
+    posterUrl?: string;
+    source: 'doodstream' | 'local' | 'supabase';
     url: string;
   }>((resolve, reject) => {
     const request = new XMLHttpRequest();
@@ -223,7 +225,9 @@ export async function uploadAdminMedia(
       }
 
       resolve({
+        fileCode: payload.fileCode,
         path: payload.path ?? '',
+        posterUrl: payload.posterUrl,
         source: payload.source ?? 'local',
         url: payload.url,
       });
@@ -237,8 +241,10 @@ function parseUploadResponse(responseText: string) {
   try {
     return JSON.parse(responseText) as {
       error?: string;
+      fileCode?: string;
       path?: string;
-      source?: 'local' | 'supabase';
+      posterUrl?: string;
+      source?: 'doodstream' | 'local' | 'supabase';
       url?: string;
     };
   } catch {

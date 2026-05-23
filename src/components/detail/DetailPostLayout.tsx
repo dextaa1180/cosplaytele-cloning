@@ -336,6 +336,20 @@ interface VideoPreviewProps {
 
 function VideoPreview({ media, index }: VideoPreviewProps) {
   if (media.url) {
+    if (isEmbeddableVideoUrl(media.url)) {
+      return (
+        <iframe
+          src={media.url}
+          title={media.alt || `Preview video ${index + 1}`}
+          className="h-full w-full border-0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      );
+    }
+
     return (
       <video
         className="h-full w-full object-cover"
@@ -378,6 +392,20 @@ function VideoPreview({ media, index }: VideoPreviewProps) {
       </div>
     </>
   );
+}
+
+function isEmbeddableVideoUrl(url: string) {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    return (
+      hostname === 'dood.to' ||
+      hostname === 'doodstream.com' ||
+      hostname.endsWith('.doodstream.com') ||
+      hostname.startsWith('dood.')
+    );
+  } catch {
+    return false;
+  }
 }
 
 function getVideoMimeType(url: string) {
