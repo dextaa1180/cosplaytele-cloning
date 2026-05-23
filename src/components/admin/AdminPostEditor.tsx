@@ -1071,19 +1071,24 @@ function normalizeDoodStreamEmbedUrl(value: string) {
       return '';
     }
 
-    if (
-      hostname === 'dood.to' ||
-      hostname === 'doodstream.com' ||
-      hostname.endsWith('.doodstream.com') ||
-      hostname.startsWith('dood.')
-    ) {
-      return `https://dood.to/e/${fileCode}`;
+    if (isDoodStreamEmbedHost(hostname)) {
+      return `${url.protocol}//${url.hostname}/e/${fileCode}`;
     }
   } catch {
     return '';
   }
 
   return '';
+}
+
+function isDoodStreamEmbedHost(hostname: string) {
+  return (
+    hostname === 'dood.to' ||
+    hostname === 'doodstream.com' ||
+    hostname === 'playmogo.com' ||
+    hostname.endsWith('.doodstream.com') ||
+    hostname.startsWith('dood.')
+  );
 }
 
 function createManualVideoName(embedUrl: string) {

@@ -400,6 +400,7 @@ function isEmbeddableVideoUrl(url: string) {
     return (
       hostname === 'dood.to' ||
       hostname === 'doodstream.com' ||
+      hostname === 'playmogo.com' ||
       hostname.endsWith('.doodstream.com') ||
       hostname.startsWith('dood.')
     );
