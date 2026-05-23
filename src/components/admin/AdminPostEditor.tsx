@@ -163,7 +163,6 @@ export function AdminPostEditor({
         tone: UploadFeedbackTone = 'info',
       ) => {
         setPreviewUploadFeedback({ message, tone });
-        setSaveMessage(message);
       };
 
       for (const file of mediaFiles) {
@@ -188,6 +187,11 @@ export function AdminPostEditor({
         const uploaded = await uploadAdminMedia(uploadFile, {
           draftId,
           kind: 'preview',
+          onUploadProgress: ({ loaded, percent, total }) => {
+            setPreviewStatus(
+              `Uploading preview media ${uploadedMedia.length + 1} of ${mediaFiles.length}: ${formatBytes(loaded)} / ${formatBytes(total)} (${percent}%).`,
+            );
+          },
           slug,
         });
         const media = {
@@ -225,7 +229,6 @@ export function AdminPostEditor({
         message,
         tone: 'error',
       });
-      setSaveMessage(message);
     } finally {
       setUploading(false);
       event.target.value = '';

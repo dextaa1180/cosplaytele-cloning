@@ -45,6 +45,12 @@ export interface AdminPostDraft {
   updatedAt: string;
 }
 
+interface AdminMediaUploadProgress {
+  loaded: number;
+  total: number;
+  percent: number;
+}
+
 export const ADMIN_DRAFTS_STORAGE_KEY = 'tunacosplay-admin-post-drafts';
 const ADMIN_DRAFTS_CHANGE_EVENT = 'tunacosplay-admin-post-drafts-change';
 
@@ -164,38 +170,67 @@ export async function uploadAdminMedia(
   options: {
     draftId: string;
     kind: 'thumbnail' | 'hero' | 'preview';
+    onUploadProgress?: (progress: AdminMediaUploadProgress) => void;
     slug: string;
   },
 ) {
-  const response = await fetch(`${ADMIN_API_BASE_PATH}/media`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': file.type || 'application/octet-stream',
-      'X-Tunacosplay-Upload': 'raw',
-      'X-Draft-Id': encodeURIComponent(options.draftId),
-      'X-File-Name': encodeURIComponent(file.name || 'upload'),
-      'X-File-Size': String(file.size),
-      'X-Kind': options.kind,
-      'X-Slug': encodeURIComponent(options.slug),
-    },
-    body: file,
+  return new Promise<{
+    path: string;
+    source: 'local' | 'supabase';
+    url: string;
+  }>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `${ADMIN_API_BASE_PATH}/media`);
+    request.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    request.setRequestHeader('X-Tunacosplay-Upload', 'raw');
+    request.setRequestHeader('X-Draft-Id', encodeURIComponent(options.draftId));
+    request.setRequestHeader('X-File-Name', encodeURIComponent(file.name || 'upload'));
+    request.setRequestHeader('X-File-Size', String(file.size));
+    request.setRequestHeader('X-Kind', options.kind);
+    request.setRequestHeader('X-Slug', encodeURIComponent(options.slug));
+
+    request.upload.onprogress = (event) => {
+      if (!options.onUploadProgress) {
+        return;
+      }
+
+      const total = event.lengthComputable && event.total > 0 ? event.total : file.size;
+      const loaded = Math.min(event.loaded, total);
+      const percent = total > 0 ? Math.min(100, Math.round((loaded / total) * 100)) : 0;
+      options.onUploadProgress({ loaded, percent, total });
+    };
+
+    request.onerror = () => {
+      reject(new Error('Upload connection failed before the server responded.'));
+    };
+    request.onabort = () => {
+      reject(new Error('Upload was cancelled before it finished.'));
+    };
+    request.ontimeout = () => {
+      reject(new Error('Upload timed out before it finished.'));
+    };
+    request.onload = () => {
+      const payload = parseUploadResponse(request.responseText);
+
+      if (request.status < 200 || request.status >= 300 || !payload?.url) {
+        reject(
+          new Error(
+            payload?.error ??
+              `Unable to upload media. Server returned ${request.status}.`,
+          ),
+        );
+        return;
+      }
+
+      resolve({
+        path: payload.path ?? '',
+        source: payload.source ?? 'local',
+        url: payload.url,
+      });
+    };
+
+    request.send(file);
   });
-
-  const responseText = await response.text();
-  const payload = parseUploadResponse(responseText);
-
-  if (!response.ok || !payload?.url) {
-    throw new Error(
-      payload?.error ??
-        `Unable to upload media. Server returned ${response.status}.`,
-    );
-  }
-
-  return {
-    path: payload.path ?? '',
-    source: payload.source ?? 'local',
-    url: payload.url,
-  };
 }
 
 function parseUploadResponse(responseText: string) {
