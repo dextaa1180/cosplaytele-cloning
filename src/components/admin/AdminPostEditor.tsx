@@ -29,15 +29,9 @@ type DraftMedia = AdminDraftMedia & {
 
 type UploadFeedbackTone = 'error' | 'info' | 'success';
 
-type VideoWithCaptureStream = HTMLVideoElement & {
-  captureStream?: () => MediaStream;
-  mozCaptureStream?: () => MediaStream;
-};
-
 const categories: Category[] = ['cosplay', 'video-cosplayy', 'cosplay-ero', 'nude'];
 const tags: Tag[] = ['cosplay-game', 'cosplay-anime-manga', 'cosplay-freestyle', 'video'];
 const defaultSelectedTags: Tag[] = ['cosplay-game'];
-const maxPreviewVideoDurationSeconds = 60;
 const compressibleImageTypes = new Set([
   'image/jpeg',
   'image/png',
@@ -171,14 +165,17 @@ export function AdminPostEditor({
         );
 
         const type = file.type.startsWith('video/') ? 'video' : 'image';
-        const videoPreview =
-          type === 'video'
-            ? await prepareVideoPreviewForUpload(file, setPreviewStatus)
-            : null;
         const uploadFile =
           type === 'image'
             ? await compressPreviewImageWithStatus(file, setPreviewStatus)
-            : videoPreview?.file ?? file;
+            : file;
+
+        if (type === 'video') {
+          setPreviewStatus(
+            `Uploading full video preview ${file.name} (${formatBytes(file.size)}) to the video provider...`,
+          );
+        }
+
         setPreviewStatus(
           `Uploading preview media ${uploadedMedia.length + 1} of ${mediaFiles.length} (${formatBytes(uploadFile.size)})...`,
         );
@@ -204,10 +201,7 @@ export function AdminPostEditor({
           url: uploaded.url,
           posterUrl: uploaded.posterUrl,
           alt: uploadFile.name.replace(/\.[^.]+$/, ''),
-          duration:
-            type === 'video'
-              ? formatDurationLabel(videoPreview?.durationSeconds)
-              : undefined,
+          duration: type === 'video' ? 'Full video' : undefined,
           sortOrder: startingOrder + uploadedMedia.length + 1,
           storageStatus: 'uploaded',
           objectUrl,
@@ -1036,221 +1030,6 @@ async function compressPreviewImageWithStatus(
   return compressedFile;
 }
 
-async function prepareVideoPreviewForUpload(
-  file: File,
-  onStatus: (message: string, tone?: UploadFeedbackTone) => void,
-) {
-  onStatus(`Reading video duration for ${file.name}...`);
-  const durationSeconds = await getVideoDuration(file);
-
-  if (
-    !Number.isFinite(durationSeconds) ||
-    durationSeconds <= maxPreviewVideoDurationSeconds
-  ) {
-    onStatus(
-      Number.isFinite(durationSeconds)
-        ? `Video duration is ${formatDurationLabel(durationSeconds)}. It is under 1:00, so the original video will be uploaded.`
-        : `Video duration could not be detected. Uploading the original video file.`,
-    );
-    return {
-      durationSeconds: Number.isFinite(durationSeconds)
-        ? durationSeconds
-        : undefined,
-      file,
-    };
-  }
-
-  onStatus(
-    `Video duration is ${formatDurationLabel(durationSeconds)}. Trimming the first 1:00 in your browser before upload. Keep this tab open.`,
-  );
-  const trimmedFile = await trimVideoInBrowser(
-    file,
-    maxPreviewVideoDurationSeconds,
-    onStatus,
-  );
-  onStatus(
-    `Video trim complete. New preview size is ${formatBytes(trimmedFile.size)}. Uploading trimmed preview...`,
-  );
-
-  return {
-    durationSeconds: maxPreviewVideoDurationSeconds,
-    file: trimmedFile,
-  };
-}
-
-function getVideoDuration(file: File) {
-  return new Promise<number>((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(file);
-    const video = document.createElement('video');
-
-    const cleanup = () => {
-      video.removeAttribute('src');
-      video.load();
-      URL.revokeObjectURL(objectUrl);
-    };
-
-    video.preload = 'metadata';
-    video.onloadedmetadata = () => {
-      const duration = video.duration;
-      cleanup();
-      resolve(duration);
-    };
-    video.onerror = () => {
-      cleanup();
-      reject(new Error('Unable to read video duration.'));
-    };
-    video.src = objectUrl;
-  });
-}
-
-async function trimVideoInBrowser(
-  file: File,
-  maxDurationSeconds: number,
-  onStatus: (message: string, tone?: UploadFeedbackTone) => void,
-) {
-  if (typeof MediaRecorder === 'undefined') {
-    throw new Error(
-      'This browser cannot trim video automatically. Upload a video preview under 60 seconds or try Chrome/Edge desktop.',
-    );
-  }
-
-  const objectUrl = URL.createObjectURL(file);
-  const video = document.createElement('video') as VideoWithCaptureStream;
-  video.muted = true;
-  video.playsInline = true;
-  video.preload = 'auto';
-  video.src = objectUrl;
-  video.style.height = '1px';
-  video.style.left = '-9999px';
-  video.style.opacity = '0';
-  video.style.position = 'fixed';
-  video.style.top = '0';
-  video.style.width = '1px';
-  document.body.appendChild(video);
-
-  try {
-    await waitForMediaEvent(video, 'loadedmetadata');
-    if (video.currentTime > 0.05) {
-      video.currentTime = 0;
-      await waitForMediaEvent(video, 'seeked');
-    }
-
-    const stream = video.captureStream?.() ?? video.mozCaptureStream?.();
-    if (!stream) {
-      throw new Error(
-        'This browser cannot trim video automatically. Upload a video preview under 60 seconds or try Chrome/Edge desktop.',
-      );
-    }
-
-    const mimeType = getSupportedRecorderMimeType();
-    const chunks: Blob[] = [];
-    const recorder = new MediaRecorder(stream, {
-      ...(mimeType ? { mimeType } : {}),
-      audioBitsPerSecond: 64000,
-      videoBitsPerSecond: 1200000,
-    });
-    const stopped = new Promise<Blob>((resolve, reject) => {
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
-      recorder.onerror = () => reject(new Error('Video trimming failed.'));
-      recorder.onstop = () => {
-        resolve(new Blob(chunks, { type: recorder.mimeType || mimeType }));
-      };
-    });
-
-    recorder.start(1000);
-    await video.play();
-    const trimStartedAt = Date.now();
-    let lastReportedSecond = 0;
-
-    while (Date.now() - trimStartedAt < maxDurationSeconds * 1000 && !video.ended) {
-      await wait(1000);
-      const elapsedSeconds = Math.min(
-        maxDurationSeconds,
-        Math.floor((Date.now() - trimStartedAt) / 1000),
-      );
-
-      if (
-        elapsedSeconds > 0 &&
-        elapsedSeconds % 5 === 0 &&
-        elapsedSeconds !== lastReportedSecond
-      ) {
-        lastReportedSecond = elapsedSeconds;
-        onStatus(
-          `Trimming video preview... ${elapsedSeconds}s / ${maxDurationSeconds}s recorded. Keep this tab open.`,
-        );
-      }
-    }
-
-    if (recorder.state !== 'inactive') {
-      recorder.stop();
-    }
-
-    video.pause();
-    stream.getTracks().forEach((track) => track.stop());
-
-    const blob = await stopped;
-    const outputType = blob.type || mimeType || 'video/webm';
-    const outputExtension = outputType.includes('mp4') ? 'mp4' : 'webm';
-
-    return new File(
-      [blob],
-      replaceExtension(file.name, outputExtension),
-      {
-        lastModified: Date.now(),
-        type: outputType,
-      },
-    );
-  } finally {
-    video.pause();
-    video.remove();
-    URL.revokeObjectURL(objectUrl);
-  }
-}
-
-function waitForMediaEvent(
-  media: HTMLMediaElement,
-  eventName: 'loadedmetadata' | 'seeked',
-) {
-  return new Promise<void>((resolve, reject) => {
-    const cleanup = () => {
-      media.removeEventListener(eventName, handleEvent);
-      media.removeEventListener('error', handleError);
-    };
-    const handleEvent = () => {
-      cleanup();
-      resolve();
-    };
-    const handleError = () => {
-      cleanup();
-      reject(new Error('Unable to process video preview.'));
-    };
-
-    media.addEventListener(eventName, handleEvent, { once: true });
-    media.addEventListener('error', handleError, { once: true });
-  });
-}
-
-function getSupportedRecorderMimeType() {
-  const mimeTypes = [
-    'video/mp4',
-    'video/webm;codecs=vp9,opus',
-    'video/webm;codecs=vp8,opus',
-    'video/webm',
-  ];
-
-  return mimeTypes.find((mimeType) => MediaRecorder.isTypeSupported(mimeType)) ?? '';
-}
-
-function wait(milliseconds: number) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, milliseconds);
-  });
-}
-
 function replaceExtension(fileName: string, extension: string) {
   const baseName = fileName.replace(/\.[^.]+$/, '') || 'upload';
   return `${baseName}.${extension}`;
@@ -1283,14 +1062,4 @@ function formatBytes(bytes: number) {
   }
 
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatDurationLabel(durationSeconds: number | undefined) {
-  if (!durationSeconds) {
-    return 'preview';
-  }
-
-  const minutes = Math.floor(durationSeconds / 60);
-  const seconds = Math.round(durationSeconds % 60);
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
