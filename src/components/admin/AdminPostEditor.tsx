@@ -27,6 +27,8 @@ type DraftMedia = AdminDraftMedia & {
   objectUrl?: string;
 };
 
+type UploadFeedbackTone = 'error' | 'info' | 'success';
+
 type VideoWithCaptureStream = HTMLVideoElement & {
   captureStream?: () => MediaStream;
   mozCaptureStream?: () => MediaStream;
@@ -92,6 +94,10 @@ export function AdminPostEditor({
   );
   const [validationMessages, setValidationMessages] = useState<string[]>([]);
   const [saveMessage, setSaveMessage] = useState('');
+  const [previewUploadFeedback, setPreviewUploadFeedback] = useState<{
+    message: string;
+    tone: UploadFeedbackTone;
+  } | null>(null);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -152,20 +158,29 @@ export function AdminPostEditor({
     try {
       const startingOrder = previewMedia.length;
       const uploadedMedia: DraftMedia[] = [];
+      const setPreviewStatus = (
+        message: string,
+        tone: UploadFeedbackTone = 'info',
+      ) => {
+        setPreviewUploadFeedback({ message, tone });
+        setSaveMessage(message);
+      };
 
       for (const file of mediaFiles) {
-        setSaveMessage(
+        setPreviewStatus(
           `Preparing preview media ${uploadedMedia.length + 1} of ${mediaFiles.length}...`,
         );
 
         const type = file.type.startsWith('video/') ? 'video' : 'image';
         const videoPreview =
-          type === 'video' ? await prepareVideoPreviewForUpload(file) : null;
+          type === 'video'
+            ? await prepareVideoPreviewForUpload(file, setPreviewStatus)
+            : null;
         const uploadFile =
           type === 'image'
-            ? await compressImageForUpload(file, 'preview')
+            ? await compressPreviewImageWithStatus(file, setPreviewStatus)
             : videoPreview?.file ?? file;
-        setSaveMessage(
+        setPreviewStatus(
           `Uploading preview media ${uploadedMedia.length + 1} of ${mediaFiles.length} (${formatBytes(uploadFile.size)})...`,
         );
 
@@ -193,11 +208,24 @@ export function AdminPostEditor({
 
         uploadedMedia.push(media);
         setPreviewMedia((current) => [...current, media]);
+        setPreviewStatus(
+          `Preview media ${uploadedMedia.length} of ${mediaFiles.length} uploaded successfully.`,
+          'success',
+        );
       }
 
-      setSaveMessage(`${uploadedMedia.length} preview media uploaded.`);
+      setPreviewStatus(
+        `${uploadedMedia.length} preview media uploaded successfully.`,
+        'success',
+      );
     } catch (error) {
-      setSaveMessage(error instanceof Error ? error.message : 'Preview media could not be uploaded.');
+      const message =
+        error instanceof Error ? error.message : 'Preview media could not be uploaded.';
+      setPreviewUploadFeedback({
+        message,
+        tone: 'error',
+      });
+      setSaveMessage(message);
     } finally {
       setUploading(false);
       event.target.value = '';
@@ -365,11 +393,13 @@ export function AdminPostEditor({
     setDownloadLinks(createEmptyDownloadLinks());
     setPreviewMedia([]);
     setValidationMessages([]);
+    setPreviewUploadFeedback(null);
   };
 
   const clearFeedback = () => {
     setValidationMessages([]);
     setSaveMessage('');
+    setPreviewUploadFeedback(null);
   };
 
   const buildDraft = (status: AdminPostDraft['status']): AdminPostDraft => {
@@ -691,7 +721,7 @@ export function AdminPostEditor({
                 </div>
                 <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800">
                   <Upload className="h-4 w-4" aria-hidden="true" />
-                  {uploading ? 'Uploading...' : 'Add Media'}
+                  {uploading ? 'Processing...' : 'Add Media'}
                   <input
                     type="file"
                     accept="image/*,video/*"
@@ -702,6 +732,29 @@ export function AdminPostEditor({
                   />
                 </label>
               </div>
+
+              {previewUploadFeedback && (
+                <div
+                  className={cn(
+                    'mb-4 rounded-lg border px-4 py-3 text-sm',
+                    previewUploadFeedback.tone === 'error' &&
+                      'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-300',
+                    previewUploadFeedback.tone === 'info' &&
+                      'border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-900 dark:bg-cyan-950 dark:text-cyan-200',
+                    previewUploadFeedback.tone === 'success' &&
+                      'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300',
+                  )}
+                >
+                  <p className="font-semibold">
+                    {previewUploadFeedback.tone === 'error'
+                      ? 'Upload failed'
+                      : previewUploadFeedback.tone === 'success'
+                        ? 'Upload complete'
+                        : 'Upload in progress'}
+                  </p>
+                  <p className="mt-1">{previewUploadFeedback.message}</p>
+                </div>
+              )}
 
               <div className="min-w-0 space-y-3">
                 {previewMedia.length > 0 ? (
@@ -959,13 +1012,40 @@ async function compressImageForUpload(
   });
 }
 
-async function prepareVideoPreviewForUpload(file: File) {
+async function compressPreviewImageWithStatus(
+  file: File,
+  onStatus: (message: string, tone?: UploadFeedbackTone) => void,
+) {
+  onStatus(`Compressing image preview ${file.name} before upload...`);
+  const compressedFile = await compressImageForUpload(file, 'preview');
+
+  if (compressedFile === file) {
+    onStatus(`Image ${file.name} is already small enough. Uploading original file...`);
+  } else {
+    onStatus(
+      `Image compressed from ${formatBytes(file.size)} to ${formatBytes(compressedFile.size)}. Uploading compressed file...`,
+    );
+  }
+
+  return compressedFile;
+}
+
+async function prepareVideoPreviewForUpload(
+  file: File,
+  onStatus: (message: string, tone?: UploadFeedbackTone) => void,
+) {
+  onStatus(`Reading video duration for ${file.name}...`);
   const durationSeconds = await getVideoDuration(file);
 
   if (
     !Number.isFinite(durationSeconds) ||
     durationSeconds <= maxPreviewVideoDurationSeconds
   ) {
+    onStatus(
+      Number.isFinite(durationSeconds)
+        ? `Video duration is ${formatDurationLabel(durationSeconds)}. It is under 1:00, so the original video will be uploaded.`
+        : `Video duration could not be detected. Uploading the original video file.`,
+    );
     return {
       durationSeconds: Number.isFinite(durationSeconds)
         ? durationSeconds
@@ -974,9 +1054,16 @@ async function prepareVideoPreviewForUpload(file: File) {
     };
   }
 
+  onStatus(
+    `Video duration is ${formatDurationLabel(durationSeconds)}. Trimming the first 1:00 in your browser before upload. Keep this tab open.`,
+  );
   const trimmedFile = await trimVideoInBrowser(
     file,
     maxPreviewVideoDurationSeconds,
+    onStatus,
+  );
+  onStatus(
+    `Video trim complete. New preview size is ${formatBytes(trimmedFile.size)}. Uploading trimmed preview...`,
   );
 
   return {
@@ -1010,7 +1097,11 @@ function getVideoDuration(file: File) {
   });
 }
 
-async function trimVideoInBrowser(file: File, maxDurationSeconds: number) {
+async function trimVideoInBrowser(
+  file: File,
+  maxDurationSeconds: number,
+  onStatus: (message: string, tone?: UploadFeedbackTone) => void,
+) {
   if (typeof MediaRecorder === 'undefined') {
     throw new Error(
       'This browser cannot trim video automatically. Upload a video preview under 60 seconds or try Chrome/Edge desktop.',
@@ -1066,7 +1157,27 @@ async function trimVideoInBrowser(file: File, maxDurationSeconds: number) {
 
     recorder.start(1000);
     await video.play();
-    await wait(maxDurationSeconds * 1000);
+    const trimStartedAt = Date.now();
+    let lastReportedSecond = 0;
+
+    while (Date.now() - trimStartedAt < maxDurationSeconds * 1000 && !video.ended) {
+      await wait(1000);
+      const elapsedSeconds = Math.min(
+        maxDurationSeconds,
+        Math.floor((Date.now() - trimStartedAt) / 1000),
+      );
+
+      if (
+        elapsedSeconds > 0 &&
+        elapsedSeconds % 5 === 0 &&
+        elapsedSeconds !== lastReportedSecond
+      ) {
+        lastReportedSecond = elapsedSeconds;
+        onStatus(
+          `Trimming video preview... ${elapsedSeconds}s / ${maxDurationSeconds}s recorded. Keep this tab open.`,
+        );
+      }
+    }
 
     if (recorder.state !== 'inactive') {
       recorder.stop();
