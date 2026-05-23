@@ -5,9 +5,6 @@ import { randomUUID } from 'node:crypto';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-type StorageUploadBody = BodyInit | ReadableStream<Uint8Array>;
-type StreamingRequestInit = RequestInit & { duplex?: 'half' };
-
 const localUploadsDirectory = path.join(
   process.cwd(),
   'public',
@@ -93,10 +90,18 @@ async function uploadRawMedia(request: Request) {
   const scope = sanitizePathSegment(slug || draftId || 'draft');
   const storedFileName = createStoredFileName(kind, fileName);
   const storagePath = `${scope}/${storedFileName}`;
+  const fileBuffer = Buffer.from(await request.arrayBuffer());
+
+  if (fileBuffer.byteLength === 0) {
+    return Response.json(
+      { error: 'Upload finished with an empty file. Please try again.' },
+      { status: 400 },
+    );
+  }
 
   if (isSupabaseStorageConfigured()) {
     const bucket = getStorageBucket();
-    await uploadToSupabaseStorage(storagePath, contentType, body);
+    await uploadToSupabaseStorage(storagePath, contentType, fileBuffer);
     return Response.json({
       path: storagePath,
       source: 'supabase',
@@ -104,7 +109,6 @@ async function uploadRawMedia(request: Request) {
     });
   }
 
-  const fileBuffer = Buffer.from(await request.arrayBuffer());
   const scopedDirectory = path.join(localUploadsDirectory, scope);
   await mkdir(scopedDirectory, { recursive: true });
   await writeFile(path.join(scopedDirectory, storedFileName), fileBuffer);
@@ -138,7 +142,7 @@ function getStorageBucket() {
 async function uploadToSupabaseStorage(
   storagePath: string,
   contentType: string,
-  body: StorageUploadBody,
+  fileBuffer: Buffer,
 ) {
   const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, '');
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -151,19 +155,18 @@ async function uploadToSupabaseStorage(
   const uploadUrl = `${supabaseUrl}/storage/v1/object/${encodeStoragePath(
     bucket,
   )}/${encodeStoragePath(storagePath)}`;
-  const uploadRequestInit: StreamingRequestInit = {
+  const response = await fetch(uploadUrl, {
     method: 'POST',
     headers: {
       apikey: serviceRoleKey,
       Authorization: `Bearer ${serviceRoleKey}`,
       'Cache-Control': '3600',
+      'Content-Length': String(fileBuffer.byteLength),
       'Content-Type': contentType,
       'x-upsert': 'true',
     },
-    body,
-    duplex: body instanceof ReadableStream ? 'half' : undefined,
-  };
-  const response = await fetch(uploadUrl, uploadRequestInit);
+    body: new Uint8Array(fileBuffer),
+  });
 
   if (!response.ok) {
     const responseText = await response.text();

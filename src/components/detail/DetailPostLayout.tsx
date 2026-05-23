@@ -346,7 +346,7 @@ function VideoPreview({ media, index }: VideoPreviewProps) {
         poster={media.posterUrl}
         aria-label={media.alt || `Preview video ${index + 1}`}
       >
-        <source src={media.url} />
+        <source src={media.url} type={getVideoMimeType(media.url)} />
         Your browser does not support the video tag.
       </video>
     );
@@ -378,4 +378,22 @@ function VideoPreview({ media, index }: VideoPreviewProps) {
       </div>
     </>
   );
+}
+
+function getVideoMimeType(url: string) {
+  const pathname = url.split('?')[0]?.toLowerCase() ?? '';
+
+  if (pathname.endsWith('.mp4') || pathname.endsWith('.m4v')) {
+    return 'video/mp4';
+  }
+
+  if (pathname.endsWith('.webm')) {
+    return 'video/webm';
+  }
+
+  if (pathname.endsWith('.mov')) {
+    return 'video/quicktime';
+  }
+
+  return undefined;
 }

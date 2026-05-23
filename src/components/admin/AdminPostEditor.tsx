@@ -1233,10 +1233,10 @@ function waitForMediaEvent(
 
 function getSupportedRecorderMimeType() {
   const mimeTypes = [
+    'video/mp4',
     'video/webm;codecs=vp9,opus',
     'video/webm;codecs=vp8,opus',
     'video/webm',
-    'video/mp4',
   ];
 
   return mimeTypes.find((mimeType) => MediaRecorder.isTypeSupported(mimeType)) ?? '';
