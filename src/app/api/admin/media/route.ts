@@ -1,10 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { getSupabaseAdminClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+type StorageUploadBody = BodyInit | ReadableStream<Uint8Array>;
+type StreamingRequestInit = RequestInit & { duplex?: 'half' };
 
 const localUploadsDirectory = path.join(
   process.cwd(),
@@ -15,6 +17,10 @@ const localUploadsDirectory = path.join(
 
 export async function POST(request: Request) {
   try {
+    if (request.headers.get('x-tunacosplay-upload') === 'raw') {
+      return await uploadRawMedia(request);
+    }
+
     const formData = await readUploadFormData(request);
     const file = formData.get('file');
 
@@ -36,26 +42,14 @@ export async function POST(request: Request) {
     const fileName = createStoredFileName(kind, file.name);
     const storagePath = `${scope}/${fileName}`;
     const fileBuffer = Buffer.from(await file.arrayBuffer());
-    const supabase = getSupabaseAdminClient();
 
-    if (supabase) {
-      const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'tunacosplay-media';
-      const { error } = await supabase.storage
-        .from(bucket)
-        .upload(storagePath, fileBuffer, {
-          contentType: file.type,
-          upsert: true,
-        });
-
-      if (error) {
-        return Response.json({ error: error.message }, { status: 500 });
-      }
-
-      const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
+    if (isSupabaseStorageConfigured()) {
+      const bucket = getStorageBucket();
+      await uploadToSupabaseStorage(storagePath, file.type, fileBuffer);
       return Response.json({
         path: storagePath,
         source: 'supabase',
-        url: createPublicStorageUrl(bucket, storagePath) || data.publicUrl,
+        url: createPublicStorageUrl(bucket, storagePath) || createSupabasePublicUrl(bucket, storagePath),
       });
     }
 
@@ -73,6 +67,55 @@ export async function POST(request: Request) {
   }
 }
 
+async function uploadRawMedia(request: Request) {
+  const fileNameHeader = request.headers.get('x-file-name') || 'upload';
+  const fileName = decodeHeaderValue(fileNameHeader) || 'upload';
+  const contentType = request.headers.get('content-type') || 'application/octet-stream';
+
+  if (!isAllowedMediaType(contentType)) {
+    return Response.json(
+      { error: 'Only image and video files are supported.' },
+      { status: 400 },
+    );
+  }
+
+  const body = request.body;
+  if (!body) {
+    return Response.json(
+      { error: 'Upload request did not include a file body.' },
+      { status: 400 },
+    );
+  }
+
+  const kind = sanitizePathSegment(request.headers.get('x-kind') || 'media');
+  const slug = decodeHeaderValue(request.headers.get('x-slug') || '');
+  const draftId = decodeHeaderValue(request.headers.get('x-draft-id') || '');
+  const scope = sanitizePathSegment(slug || draftId || 'draft');
+  const storedFileName = createStoredFileName(kind, fileName);
+  const storagePath = `${scope}/${storedFileName}`;
+
+  if (isSupabaseStorageConfigured()) {
+    const bucket = getStorageBucket();
+    await uploadToSupabaseStorage(storagePath, contentType, body);
+    return Response.json({
+      path: storagePath,
+      source: 'supabase',
+      url: createPublicStorageUrl(bucket, storagePath) || createSupabasePublicUrl(bucket, storagePath),
+    });
+  }
+
+  const fileBuffer = Buffer.from(await request.arrayBuffer());
+  const scopedDirectory = path.join(localUploadsDirectory, scope);
+  await mkdir(scopedDirectory, { recursive: true });
+  await writeFile(path.join(scopedDirectory, storedFileName), fileBuffer);
+
+  return Response.json({
+    path: storagePath,
+    source: 'local',
+    url: `/uploads/tunacosplay/${scope}/${storedFileName}`,
+  });
+}
+
 async function readUploadFormData(request: Request) {
   try {
     return await request.formData();
@@ -81,6 +124,71 @@ async function readUploadFormData(request: Request) {
       'Upload request was interrupted before the server could read the file. Try uploading fewer files at once, or use smaller/compressed media.',
       { cause: error },
     );
+  }
+}
+
+function isSupabaseStorageConfigured() {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+function getStorageBucket() {
+  return process.env.SUPABASE_STORAGE_BUCKET || 'tunacosplay-media';
+}
+
+async function uploadToSupabaseStorage(
+  storagePath: string,
+  contentType: string,
+  body: StorageUploadBody,
+) {
+  const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, '');
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Supabase storage is not configured.');
+  }
+
+  const bucket = getStorageBucket();
+  const uploadUrl = `${supabaseUrl}/storage/v1/object/${encodeStoragePath(
+    bucket,
+  )}/${encodeStoragePath(storagePath)}`;
+  const uploadRequestInit: StreamingRequestInit = {
+    method: 'POST',
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Cache-Control': '3600',
+      'Content-Type': contentType,
+      'x-upsert': 'true',
+    },
+    body,
+    duplex: body instanceof ReadableStream ? 'half' : undefined,
+  };
+  const response = await fetch(uploadUrl, uploadRequestInit);
+
+  if (!response.ok) {
+    const responseText = await response.text();
+    throw new Error(parseStorageError(responseText) || `Storage upload failed with status ${response.status}.`);
+  }
+}
+
+function parseStorageError(responseText: string) {
+  try {
+    const payload = JSON.parse(responseText) as { error?: string; message?: string };
+    return payload.error || payload.message || '';
+  } catch {
+    return responseText.trim().slice(0, 240);
+  }
+}
+
+function encodeStoragePath(value: string) {
+  return value.split('/').map(encodeURIComponent).join('/');
+}
+
+function decodeHeaderValue(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
   }
 }
 
@@ -149,4 +257,13 @@ function createPublicStorageUrl(bucket: string, storagePath: string) {
   }
 
   return `${baseUrl.replace(/\/+$/, '')}/storage/v1/object/public/${bucket}/${storagePath}`;
+}
+
+function createSupabasePublicUrl(bucket: string, storagePath: string) {
+  const supabaseUrl = process.env.SUPABASE_URL?.trim();
+  if (!supabaseUrl) {
+    return '';
+  }
+
+  return `${supabaseUrl.replace(/\/+$/, '')}/storage/v1/object/public/${bucket}/${storagePath}`;
 }

@@ -167,15 +167,18 @@ export async function uploadAdminMedia(
     slug: string;
   },
 ) {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('draftId', options.draftId);
-  formData.append('kind', options.kind);
-  formData.append('slug', options.slug);
-
   const response = await fetch(`${ADMIN_API_BASE_PATH}/media`, {
     method: 'POST',
-    body: formData,
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+      'X-Tunacosplay-Upload': 'raw',
+      'X-Draft-Id': encodeURIComponent(options.draftId),
+      'X-File-Name': encodeURIComponent(file.name || 'upload'),
+      'X-File-Size': String(file.size),
+      'X-Kind': options.kind,
+      'X-Slug': encodeURIComponent(options.slug),
+    },
+    body: file,
   });
 
   const responseText = await response.text();
