@@ -7,6 +7,7 @@ import {
   managedPostToDraft,
   publishAdminDraft,
 } from '@/lib/published-posts';
+import { deleteTelegramPostMessage, syncTelegramPostMessage } from '@/lib/telegram';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -37,7 +38,11 @@ export async function PATCH(
       return Response.json({ error: 'Post id mismatch.' }, { status: 400 });
     }
 
+    const existingPost = await getManagedPostById(id);
     const posts = await publishAdminDraft(draft);
+    syncTelegramAfterPatch(draft, existingPost?.status).catch((error: unknown) => {
+      console.error('Unable to sync Telegram post notification.', error);
+    });
     revalidateAdminPostPaths(draft);
 
     return Response.json({ posts });
@@ -59,6 +64,9 @@ export async function DELETE(
     }
 
     const posts = await deletePublishedPost(id);
+    deleteTelegramPostMessage(id).catch((error: unknown) => {
+      console.error('Unable to delete Telegram post notification.', error);
+    });
 
     revalidatePath('/');
     revalidatePath(ADMIN_DASHBOARD_PATH);
@@ -69,6 +77,20 @@ export async function DELETE(
     return Response.json({ posts });
   } catch (error) {
     return Response.json({ error: getErrorMessage(error) }, { status: 500 });
+  }
+}
+
+async function syncTelegramAfterPatch(
+  draft: AdminPostDraft,
+  previousStatus: AdminPostDraft['status'] | undefined,
+) {
+  if (draft.status === 'published') {
+    await syncTelegramPostMessage(draft);
+    return;
+  }
+
+  if (previousStatus === 'published') {
+    await deleteTelegramPostMessage(draft.id);
   }
 }
 

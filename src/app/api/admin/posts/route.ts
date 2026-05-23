@@ -2,7 +2,7 @@ import { revalidatePath } from 'next/cache';
 import { ADMIN_DASHBOARD_PATH } from '@/lib/admin-auth';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
 import { getManagedPostById, getManagedPosts, publishAdminDraft } from '@/lib/published-posts';
-import { sendPostPublishedTelegramMessage } from '@/lib/telegram';
+import { deleteTelegramPostMessage, syncTelegramPostMessage } from '@/lib/telegram';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -27,15 +27,10 @@ export async function POST(request: Request) {
     }
 
     const existingPost = await getManagedPostById(normalizedDraft.id);
-    const shouldSendTelegramMessage =
-      normalizedDraft.status === 'published' && existingPost?.status !== 'published';
     const posts = await publishAdminDraft(normalizedDraft);
-
-    if (shouldSendTelegramMessage) {
-      sendPostPublishedTelegramMessage(normalizedDraft).catch((error: unknown) => {
-        console.error('Unable to send Telegram post notification.', error);
-      });
-    }
+    syncTelegramAfterPublish(normalizedDraft, existingPost?.status).catch((error: unknown) => {
+      console.error('Unable to sync Telegram post notification.', error);
+    });
 
     revalidatePath('/');
     revalidatePath(ADMIN_DASHBOARD_PATH);
@@ -46,6 +41,20 @@ export async function POST(request: Request) {
     return Response.json({ posts });
   } catch (error) {
     return Response.json({ error: getErrorMessage(error) }, { status: 500 });
+  }
+}
+
+async function syncTelegramAfterPublish(
+  draft: AdminPostDraft,
+  previousStatus: AdminPostDraft['status'] | undefined,
+) {
+  if (draft.status === 'published') {
+    await syncTelegramPostMessage(draft);
+    return;
+  }
+
+  if (previousStatus === 'published') {
+    await deleteTelegramPostMessage(draft.id);
   }
 }
 

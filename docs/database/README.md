@@ -11,6 +11,7 @@ The canonical migrations are:
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_replace_sorafolder_with_terabox.sql
 supabase/migrations/003_monitoring_analytics.sql
+supabase/migrations/006_telegram_post_messages.sql
 ```
 
 `docs/database/supabase-schema.sql` mirrors that migration for manual SQL
@@ -24,6 +25,7 @@ After Supabase self-hosted is running, apply the schema from the project root:
 cat supabase/migrations/001_initial_schema.sql | docker exec -i supabase-db psql -U postgres postgres
 cat supabase/migrations/002_replace_sorafolder_with_terabox.sql | docker exec -i supabase-db psql -U postgres postgres
 cat supabase/migrations/003_monitoring_analytics.sql | docker exec -i supabase-db psql -U postgres postgres
+cat supabase/migrations/006_telegram_post_messages.sql | docker exec -i supabase-db psql -U postgres postgres
 ```
 
 Or paste `docs/database/supabase-schema.sql` into the Supabase SQL Editor.
@@ -35,12 +37,14 @@ The schema creates the app database logic for:
 - `posts`
 - `preview_media`
 - `download_links`
+- `telegram_post_messages`
 - post status and media type enums
 - indexes for category, source, cosplayer, tags, and ranking pages
 - `updated_at` triggers
 - public read policies for published content
 - public storage bucket `tunacosplay-media`
 - first-party monitoring tables for unique visits and download clicks
+- Telegram channel message id mapping for edit/delete sync
 
 After applying this migration, the admin dashboard can create new content again.
 Old post data is not restored unless you also restore a full database dump.
@@ -69,6 +73,11 @@ SUPABASE_SERVICE_ROLE_KEY=...
 SUPABASE_STORAGE_BUCKET=tunacosplay-media
 PUBLIC_STORAGE_BASE_URL=https://tunacosplay.site
 ANALYTICS_SALT=optional-long-random-string
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHANNEL_ID=@channel_or_-100_id
+TELEGRAM_POST_LABEL=ASUPAN
+TELEGRAM_SHOP_URL=https://tunakaslana.shop/
+PUBLIC_SITE_URL=https://tunacosplay.site
 ```
 
 The app keeps a `.data/` fallback for local development. Once Supabase env vars
