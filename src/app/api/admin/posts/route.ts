@@ -28,9 +28,7 @@ export async function POST(request: Request) {
 
     const existingPost = await getManagedPostById(normalizedDraft.id);
     const posts = await publishAdminDraft(normalizedDraft);
-    syncTelegramAfterPublish(normalizedDraft, existingPost?.status).catch((error: unknown) => {
-      console.error('Unable to sync Telegram post notification.', error);
-    });
+    await syncTelegramSafely(normalizedDraft, existingPost?.status);
 
     revalidatePath('/');
     revalidatePath(ADMIN_DASHBOARD_PATH);
@@ -41,6 +39,17 @@ export async function POST(request: Request) {
     return Response.json({ posts });
   } catch (error) {
     return Response.json({ error: getErrorMessage(error) }, { status: 500 });
+  }
+}
+
+async function syncTelegramSafely(
+  draft: AdminPostDraft,
+  previousStatus: AdminPostDraft['status'] | undefined,
+) {
+  try {
+    await syncTelegramAfterPublish(draft, previousStatus);
+  } catch (error) {
+    console.error('Unable to sync Telegram post notification.', error);
   }
 }
 

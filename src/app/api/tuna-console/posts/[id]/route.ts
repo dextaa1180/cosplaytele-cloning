@@ -40,9 +40,7 @@ export async function PATCH(
 
     const existingPost = await getManagedPostById(id);
     const posts = await publishAdminDraft(draft);
-    syncTelegramAfterPatch(draft, existingPost?.status).catch((error: unknown) => {
-      console.error('Unable to sync Telegram post notification.', error);
-    });
+    await syncTelegramSafely(draft, existingPost?.status);
     revalidateAdminPostPaths(draft);
 
     return Response.json({ posts });
@@ -63,10 +61,8 @@ export async function DELETE(
       return Response.json({ error: 'Post not found.' }, { status: 404 });
     }
 
+    await deleteTelegramSafely(id);
     const posts = await deletePublishedPost(id);
-    deleteTelegramPostMessage(id).catch((error: unknown) => {
-      console.error('Unable to delete Telegram post notification.', error);
-    });
 
     revalidatePath('/');
     revalidatePath(ADMIN_DASHBOARD_PATH);
@@ -77,6 +73,25 @@ export async function DELETE(
     return Response.json({ posts });
   } catch (error) {
     return Response.json({ error: getErrorMessage(error) }, { status: 500 });
+  }
+}
+
+async function syncTelegramSafely(
+  draft: AdminPostDraft,
+  previousStatus: AdminPostDraft['status'] | undefined,
+) {
+  try {
+    await syncTelegramAfterPatch(draft, previousStatus);
+  } catch (error) {
+    console.error('Unable to sync Telegram post notification.', error);
+  }
+}
+
+async function deleteTelegramSafely(id: string) {
+  try {
+    await deleteTelegramPostMessage(id);
+  } catch (error) {
+    console.error('Unable to delete Telegram post notification.', error);
   }
 }
 
