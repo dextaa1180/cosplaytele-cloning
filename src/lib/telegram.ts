@@ -117,11 +117,24 @@ function createTelegramPostMessage(draft: AdminPostDraft) {
   const shopUrl = process.env.TELEGRAM_SHOP_URL?.trim() || 'https://tunakaslana.shop/';
   const postUrl = `${siteUrl}/${encodeURIComponent(draft.slug)}`;
   const postDate = new Date(draft.createdAt || Date.now());
+  const tagLabel = draft.tags.length > 0 ? draft.tags.join(', ') : '-';
+  const photoLabel = `${draft.photoCount} photo${draft.photoCount === 1 ? '' : 's'}`;
+  const videoLabel = `${draft.videoCount} video${draft.videoCount === 1 ? '' : 's'}`;
+  const fileSizeLabel = draft.fileSize.trim() || '-';
 
   return [
     `📌 ${titleLabel} (${formatTelegramDate(postDate)})`,
     '',
     draft.title.trim(),
+    '',
+    `👤 Cosplayer: ${draft.cosplayer.trim()}`,
+    `🎭 Character: ${draft.character.trim()}`,
+    `🎮 Appear In: ${draft.source.trim()}`,
+    `📂 Category: ${draft.category}`,
+    `🏷 Tags: ${tagLabel}`,
+    `🖼 Photos: ${photoLabel}`,
+    `🎬 Videos: ${videoLabel}`,
+    `📦 File Size: ${fileSizeLabel}`,
     '',
     '',
     'Preview & Download di website ⬇️',
