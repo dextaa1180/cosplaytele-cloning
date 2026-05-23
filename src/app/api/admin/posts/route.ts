@@ -1,7 +1,8 @@
 import { revalidatePath } from 'next/cache';
 import { ADMIN_DASHBOARD_PATH } from '@/lib/admin-auth';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
-import { getManagedPosts, publishAdminDraft } from '@/lib/published-posts';
+import { getManagedPostById, getManagedPosts, publishAdminDraft } from '@/lib/published-posts';
+import { sendPostPublishedTelegramMessage } from '@/lib/telegram';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -25,7 +26,16 @@ export async function POST(request: Request) {
       return Response.json({ error }, { status: 400 });
     }
 
+    const existingPost = await getManagedPostById(normalizedDraft.id);
+    const shouldSendTelegramMessage =
+      normalizedDraft.status === 'published' && existingPost?.status !== 'published';
     const posts = await publishAdminDraft(normalizedDraft);
+
+    if (shouldSendTelegramMessage) {
+      sendPostPublishedTelegramMessage(normalizedDraft).catch((error: unknown) => {
+        console.error('Unable to send Telegram post notification.', error);
+      });
+    }
 
     revalidatePath('/');
     revalidatePath(ADMIN_DASHBOARD_PATH);
