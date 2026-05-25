@@ -1,16 +1,18 @@
 'use client';
 
 import imageCompression from 'browser-image-compression';
-import { ChangeEvent, useMemo, useState } from 'react';
+import { ChangeEvent, KeyboardEvent, useMemo, useState } from 'react';
 import {
   Check,
   FileImage,
   Film,
   GripVertical,
   LinkIcon,
+  Plus,
   Save,
   Send,
   Upload,
+  X,
 } from 'lucide-react';
 import { Category, Tag } from '@/types';
 import {
@@ -30,8 +32,6 @@ type DraftMedia = AdminDraftMedia & {
 type UploadFeedbackTone = 'error' | 'info' | 'success';
 
 const categories: Category[] = ['cosplay', 'video-cosplayy', 'cosplay-ero', 'nude'];
-const tags: Tag[] = ['cosplay-game', 'cosplay-anime-manga', 'cosplay-freestyle', 'video'];
-const defaultSelectedTags: Tag[] = ['cosplay-game'];
 const compressibleImageTypes = new Set([
   'image/jpeg',
   'image/png',
@@ -42,11 +42,13 @@ const compressibleImageTypes = new Set([
 interface AdminPostEditorProps {
   initialDraft?: AdminPostDraft;
   mode?: 'create' | 'edit';
+  recentTagOptions?: Tag[];
 }
 
 export function AdminPostEditor({
   initialDraft,
   mode = 'create',
+  recentTagOptions = [],
 }: AdminPostEditorProps = {}) {
   const [draftId, setDraftId] = useState(() => initialDraft?.id ?? createDraftId());
   const [createdAt, setCreatedAt] = useState(
@@ -60,8 +62,9 @@ export function AdminPostEditor({
   const [source, setSource] = useState(initialDraft?.source ?? '');
   const [category, setCategory] = useState<Category>(initialDraft?.category ?? 'cosplay');
   const [selectedTags, setSelectedTags] = useState<Tag[]>(
-    initialDraft?.tags.length ? initialDraft.tags : [...defaultSelectedTags],
+    initialDraft?.tags.length ? normalizeTags(initialDraft.tags) : [],
   );
+  const [tagInput, setTagInput] = useState('');
   const [postStatus, setPostStatus] = useState<AdminPostDraft['status']>(
     initialDraft?.status ?? 'published',
   );
@@ -127,6 +130,11 @@ export function AdminPostEditor({
       downloadLinks,
     }),
     [category, downloadLinks, fallbackThumbnailUrl, heroImageUrl, postStatus, previewMedia, selectedTags, slug, thumbnailUrl, title],
+  );
+
+  const recentTags = useMemo(
+    () => normalizeTags(recentTagOptions).slice(0, 10),
+    [recentTagOptions],
   );
 
   const handleTitleChange = (value: string) => {
@@ -283,12 +291,48 @@ export function AdminPostEditor({
   };
 
   const toggleTag = (tag: Tag) => {
+    const normalizedTag = normalizeTagInput(tag);
+
+    if (!normalizedTag) {
+      return;
+    }
+
     setSelectedTags((current) =>
-      current.includes(tag)
-        ? current.filter((item) => item !== tag)
-        : [...current, tag],
+      current.some((item) => isSameTag(item, normalizedTag))
+        ? current.filter((item) => !isSameTag(item, normalizedTag))
+        : [...current, normalizedTag],
     );
     clearFeedback();
+  };
+
+  const addTag = (value = tagInput) => {
+    const normalizedTag = normalizeTagInput(value);
+
+    if (!normalizedTag) {
+      return;
+    }
+
+    setSelectedTags((current) =>
+      current.some((item) => isSameTag(item, normalizedTag))
+        ? current
+        : [...current, normalizedTag],
+    );
+    setTagInput('');
+    clearFeedback();
+  };
+
+  const removeTag = (tag: Tag) => {
+    setSelectedTags((current) => current.filter((item) => !isSameTag(item, tag)));
+    clearFeedback();
+  };
+
+  const handleTagInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter' && event.key !== ',') {
+      return;
+    }
+
+    event.preventDefault();
+    addTag();
   };
 
   const removeMedia = (id: string) => {
@@ -416,7 +460,8 @@ export function AdminPostEditor({
     setCharacter('');
     setSource('');
     setCategory('cosplay');
-    setSelectedTags([...defaultSelectedTags]);
+    setSelectedTags([]);
+    setTagInput('');
     setPostStatus('published');
     setPhotoCount(0);
     setVideoCount(0);
@@ -680,22 +725,72 @@ export function AdminPostEditor({
                 <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   Tags
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
+                <div className="flex min-w-0 flex-col gap-3">
+                  <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+                    <input
+                      value={tagInput}
+                      onChange={(event) => {
+                        setTagInput(event.target.value);
+                        clearFeedback();
+                      }}
+                      onKeyDown={handleTagInputKeyDown}
+                      className={cn(inputClassName, 'sm:flex-1')}
+                      placeholder="Add custom tag"
+                    />
                     <button
-                      key={tag}
                       type="button"
-                      onClick={() => toggleTag(tag)}
-                      className={cn(
-                        'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
-                        selectedTags.includes(tag)
-                          ? 'border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800',
-                      )}
+                      onClick={() => addTag()}
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                     >
-                      {tag}
+                      <Plus className="h-4 w-4" aria-hidden="true" />
+                      Add Tag
                     </button>
-                  ))}
+                  </div>
+
+                  {selectedTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="inline-flex items-center gap-2 rounded-full border border-slate-950 bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 dark:border-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                        >
+                          <span>{tag}</span>
+                          <X className="h-3.5 w-3.5" aria-hidden="true" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Recent tags
+                    </p>
+                    {recentTags.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {recentTags.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => toggleTag(tag)}
+                            className={cn(
+                              'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
+                              selectedTags.some((item) => isSameTag(item, tag))
+                                ? 'border-cyan-500 bg-cyan-50 text-cyan-700 dark:border-cyan-400 dark:bg-cyan-950/50 dark:text-cyan-200'
+                                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800',
+                            )}
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        No recent tags yet. Add a custom tag to start building history.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </section>
@@ -1053,6 +1148,36 @@ function createEmptyDownloadLinks() {
     terabox: '',
     gofile: '',
   };
+}
+
+function normalizeTags(values: Tag[]) {
+  const normalizedTags: Tag[] = [];
+
+  for (const value of values) {
+    const normalizedTag = normalizeTagInput(value);
+
+    if (
+      normalizedTag &&
+      !normalizedTags.some((tag) => isSameTag(tag, normalizedTag))
+    ) {
+      normalizedTags.push(normalizedTag);
+    }
+  }
+
+  return normalizedTags;
+}
+
+function normalizeTagInput(value: string) {
+  return value
+    .trim()
+    .replace(/^#+/, '')
+    .replace(/\s+/g, '-')
+    .replace(/,+$/g, '')
+    .toLowerCase();
+}
+
+function isSameTag(left: string, right: string) {
+  return left.trim().toLowerCase() === right.trim().toLowerCase();
 }
 
 function normalizeDoodStreamEmbedUrl(value: string) {

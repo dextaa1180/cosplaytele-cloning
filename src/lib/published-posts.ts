@@ -86,6 +86,32 @@ export async function getManagedPostById(id: string) {
   return posts.find((post) => post.id === id);
 }
 
+export async function getRecentPostTags(limit = 10) {
+  const posts = await getManagedPosts();
+  const recentTags: string[] = [];
+  const seenTags = new Set<string>();
+
+  for (const post of posts) {
+    for (const tag of post.tags) {
+      const normalizedTag = normalizeTag(tag);
+      const tagKey = normalizedTag.toLowerCase();
+
+      if (!normalizedTag || seenTags.has(tagKey)) {
+        continue;
+      }
+
+      seenTags.add(tagKey);
+      recentTags.push(normalizedTag);
+
+      if (recentTags.length >= limit) {
+        return recentTags;
+      }
+    }
+  }
+
+  return recentTags;
+}
+
 export async function publishAdminDraft(draft: AdminPostDraft) {
   const supabasePosts = await publishSupabasePost(draft);
   if (supabasePosts) {
@@ -484,6 +510,10 @@ function normalizePublicMediaUrl(url: string | null | undefined) {
   }
 
   return url.replace(/^http:\/\/kong:8000(?=\/storage\/v1\/)/, publicBaseUrl);
+}
+
+function normalizeTag(tag: string) {
+  return tag.trim().replace(/\s+/g, '-');
 }
 
 function isNotFoundError(error: unknown) {

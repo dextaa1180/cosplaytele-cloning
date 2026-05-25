@@ -1,6 +1,10 @@
 import { notFound } from 'next/navigation';
 import { AdminPostEditor } from '@/components/admin/AdminPostEditor';
-import { getManagedPostById, managedPostToDraft } from '@/lib/published-posts';
+import {
+  getManagedPostById,
+  getRecentPostTags,
+  managedPostToDraft,
+} from '@/lib/published-posts';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,11 +14,20 @@ export default async function EditPostPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const post = await getManagedPostById(id);
+  const [post, recentTagOptions] = await Promise.all([
+    getManagedPostById(id),
+    getRecentPostTags(),
+  ]);
 
   if (!post) {
     notFound();
   }
 
-  return <AdminPostEditor initialDraft={managedPostToDraft(post)} mode="edit" />;
+  return (
+    <AdminPostEditor
+      initialDraft={managedPostToDraft(post)}
+      mode="edit"
+      recentTagOptions={recentTagOptions}
+    />
+  );
 }

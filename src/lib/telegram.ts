@@ -86,7 +86,11 @@ async function sendTelegramMessage(
   messageText: string,
   botToken: string,
 ) {
-  return getTelegramBot(botToken).telegram.sendMessage(chatId, messageText);
+  return getTelegramBot(botToken).telegram.sendMessage(chatId, messageText, {
+    link_preview_options: {
+      is_disabled: true,
+    },
+  });
 }
 
 async function editTelegramMessage(
@@ -100,6 +104,11 @@ async function editTelegramMessage(
       message.messageId,
       undefined,
       messageText,
+      {
+        link_preview_options: {
+          is_disabled: true,
+        },
+      },
     );
   } catch (error) {
     if (!isMessageNotModifiedError(error)) {

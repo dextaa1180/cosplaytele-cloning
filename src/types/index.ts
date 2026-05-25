@@ -40,10 +40,6 @@ export interface Post {
   description?: string;
 }
 
-export type Tag =
-  | 'cosplay-game'
-  | 'cosplay-anime-manga'
-  | 'cosplay-freestyle'
-  | 'video';
+export type Tag = string;
 
 export type Category = 'cosplay' | 'cosplay-ero' | 'nude' | 'video-cosplayy';

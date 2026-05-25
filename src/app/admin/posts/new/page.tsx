@@ -1,5 +1,10 @@
 import { AdminPostEditor } from '@/components/admin/AdminPostEditor';
+import { getRecentPostTags } from '@/lib/published-posts';
 
-export default function NewAdminPostPage() {
-  return <AdminPostEditor />;
+export const dynamic = 'force-dynamic';
+
+export default async function NewAdminPostPage() {
+  const recentTagOptions = await getRecentPostTags();
+
+  return <AdminPostEditor recentTagOptions={recentTagOptions} />;
 }
