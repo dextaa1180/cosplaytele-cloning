@@ -47,7 +47,7 @@ export function DetailPostLayout({
   videoCount,
   tags = [],
   fileSize,
-  unzipPassword = 'cosplaytele',
+  unzipPassword = 'tunacosplay',
   downloadLinks,
   previewMedia = [],
   heroImage,

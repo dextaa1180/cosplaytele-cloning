@@ -19,7 +19,7 @@ export const posts: Post[] = [
     totalViews: 15400,
     // Detail page preview fields
     fileSize: '1.2 GB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
     downloadLinks: {
       mediafire: '#',
       telegram: '#',
@@ -84,7 +84,7 @@ export const posts: Post[] = [
     totalViews: 12300,
     // Detail page preview fields (admin-managed)
     fileSize: '450 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
   {
     id: '3',
@@ -104,7 +104,7 @@ export const posts: Post[] = [
     totalViews: 18900,
     // Detail page preview fields (admin-managed)
     fileSize: '890 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
   {
     id: '4',
@@ -124,7 +124,7 @@ export const posts: Post[] = [
     totalViews: 10200,
     // Detail page preview fields (admin-managed)
     fileSize: '620 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
   {
     id: '5',
@@ -144,7 +144,7 @@ export const posts: Post[] = [
     totalViews: 14100,
     // Detail page preview fields (admin-managed)
     fileSize: '380 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
   {
     id: '6',
@@ -164,7 +164,7 @@ export const posts: Post[] = [
     totalViews: 16800,
     // Detail page preview fields (admin-managed)
     fileSize: '780 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
   {
     id: '7',
@@ -184,7 +184,7 @@ export const posts: Post[] = [
     totalViews: 19200,
     // Detail page preview fields (admin-managed)
     fileSize: '520 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
   {
     id: '8',
@@ -204,7 +204,7 @@ export const posts: Post[] = [
     totalViews: 11800,
     // Detail page preview fields (admin-managed)
     fileSize: '410 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
   {
     id: '9',
@@ -224,7 +224,7 @@ export const posts: Post[] = [
     totalViews: 15500,
     // Detail page preview fields (admin-managed)
     fileSize: '290 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
   {
     id: '10',
@@ -244,6 +244,6 @@ export const posts: Post[] = [
     totalViews: 13400,
     // Detail page preview fields (admin-managed)
     fileSize: '550 MB',
-    unzipPassword: 'cosplaytele',
+    unzipPassword: 'tunacosplay',
   },
 ];

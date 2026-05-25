@@ -57,27 +57,28 @@ export function AdminTelegramConnectionForm({
   const hasActiveBotToken =
     botTokenConfigured ||
     Boolean(activeBot?.token === 'configured' || activeBot?.token?.trim());
-  const isConnected = hasActiveBotToken && Boolean(settings.channelId.trim());
+  const selectedChannelIds = useMemo(
+    () => normalizeSelectedChannelIds(settings.channelIds, settings.channelId),
+    [settings.channelId, settings.channelIds],
+  );
+  const isConnected = hasActiveBotToken && selectedChannelIds.length > 0;
 
   const activeChannelOptions = useMemo(() => {
-    if (
-      !settings.channelId ||
-      settings.channelOptions.some((option) => option.id === settings.channelId)
-    ) {
-      return settings.channelOptions;
-    }
+    const missingOptions = selectedChannelIds
+      .filter(
+        (channelId) =>
+          !settings.channelOptions.some((option) => option.id === channelId),
+      )
+      .map((channelId) => ({
+        id: channelId,
+        label: channelId,
+      }));
 
-    return [
-      {
-        id: settings.channelId,
-        label: settings.channelId,
-      },
-      ...settings.channelOptions,
-    ];
-  }, [settings.channelId, settings.channelOptions]);
+    return [...missingOptions, ...settings.channelOptions];
+  }, [selectedChannelIds, settings.channelOptions]);
 
-  const activeChannel = activeChannelOptions.find(
-    (option) => option.id === settings.channelId,
+  const activeChannels = activeChannelOptions.filter((option) =>
+    selectedChannelIds.includes(option.id),
   );
 
   const addBotOption = () => {
@@ -142,6 +143,11 @@ export function AdminTelegramConnectionForm({
           previousOption?.id === current.channelId && field === 'id'
             ? nextOption?.id ?? ''
             : current.channelId,
+        channelIds: current.channelIds.map((channelId) =>
+          previousOption?.id === channelId && field === 'id'
+            ? nextOption?.id ?? ''
+            : channelId,
+        ),
         channelOptions: nextOptions,
       };
     });
@@ -175,8 +181,37 @@ export function AdminTelegramConnectionForm({
       return {
         ...current,
         channelId:
-          removedOption?.id === current.channelId ? nextOptions[0]?.id ?? '' : current.channelId,
+          removedOption?.id === current.channelId
+            ? current.channelIds.find((channelId) => channelId !== removedOption.id) ??
+              nextOptions[0]?.id ??
+              ''
+            : current.channelId,
+        channelIds: current.channelIds.filter(
+          (channelId) => channelId !== removedOption?.id,
+        ),
         channelOptions: nextOptions,
+      };
+    });
+  };
+
+  const toggleChannel = (channelId: string) => {
+    if (!channelId) {
+      return;
+    }
+
+    setSettings((current) => {
+      const currentChannelIds = normalizeSelectedChannelIds(
+        current.channelIds,
+        current.channelId,
+      );
+      const nextChannelIds = currentChannelIds.includes(channelId)
+        ? currentChannelIds.filter((id) => id !== channelId)
+        : [...currentChannelIds, channelId];
+
+      return {
+        ...current,
+        channelId: nextChannelIds[0] ?? '',
+        channelIds: nextChannelIds,
       };
     });
   };
@@ -234,7 +269,7 @@ export function AdminTelegramConnectionForm({
       const response = await fetch(`${ADMIN_API_BASE_PATH}/integrations/telegram/ping`, {
         body: JSON.stringify({
           botId: settings.activeBotId,
-          channelId: settings.channelId,
+          channelId: selectedChannelIds[0] ?? '',
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -357,10 +392,10 @@ export function AdminTelegramConnectionForm({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-950 dark:text-white">
-                Active channel
+                Active channels
               </h3>
               <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-                The selected channel receives the automatic post message.
+                Select one or more channels that receive automatic post messages.
               </p>
             </div>
             <div className="flex gap-2">
@@ -389,15 +424,10 @@ export function AdminTelegramConnectionForm({
                 <button
                   key={option.id}
                   type="button"
-                  onClick={() =>
-                    setSettings((current) => ({
-                      ...current,
-                      channelId: option.id,
-                    }))
-                  }
+                  onClick={() => toggleChannel(option.id)}
                   className={cn(
                     'min-h-16 rounded-lg border p-3 text-left transition',
-                    settings.channelId === option.id
+                    selectedChannelIds.includes(option.id)
                       ? 'border-cyan-500 bg-cyan-50 text-cyan-950 ring-2 ring-cyan-100 dark:border-cyan-400 dark:bg-cyan-950/30 dark:text-cyan-100 dark:ring-cyan-950'
                       : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900',
                   )}
@@ -415,9 +445,12 @@ export function AdminTelegramConnectionForm({
             <EmptyPanel label="No channel option yet. Add a destination channel." />
           )}
 
-          {activeChannel ? (
+          {activeChannels.length > 0 ? (
             <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-400">
-              Selected: {activeChannel.label} ({activeChannel.id})
+              Selected:{' '}
+              {activeChannels
+                .map((channel) => `${channel.label} (${channel.id})`)
+                .join(', ')}
             </div>
           ) : null}
         </div>
@@ -495,13 +528,11 @@ export function AdminTelegramConnectionForm({
             />
           ) : (
             <ManageChannels
-              activeChannelId={settings.channelId}
+              activeChannelIds={selectedChannelIds}
               channelOptions={settings.channelOptions}
               onAdd={addChannelOption}
               onRemove={removeChannelOption}
-              onSelect={(channelId) =>
-                setSettings((current) => ({ ...current, channelId }))
-              }
+              onSelect={toggleChannel}
               onUpdate={updateChannelOption}
             />
           )}
@@ -637,14 +668,14 @@ function ManageBots({
 }
 
 function ManageChannels({
-  activeChannelId,
+  activeChannelIds,
   channelOptions,
   onAdd,
   onRemove,
   onSelect,
   onUpdate,
 }: {
-  activeChannelId: string;
+  activeChannelIds: string[];
   channelOptions: TelegramChannelOption[];
   onAdd: () => void;
   onRemove: (index: number) => void;
@@ -688,12 +719,14 @@ function ManageChannels({
               disabled={!option.id}
               className={cn(
                 'h-10 rounded-lg px-3 text-sm font-semibold transition',
-                activeChannelId === option.id && option.id
+                activeChannelIds.includes(option.id) && option.id
                   ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
                   : 'border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800',
               )}
             >
-              {activeChannelId === option.id && option.id ? 'Selected' : 'Use'}
+              {activeChannelIds.includes(option.id) && option.id
+                ? 'Selected'
+                : 'Use'}
             </button>
             <button
               type="button"
@@ -809,4 +842,18 @@ function formatDuration(totalSeconds: number) {
   }
 
   return `${seconds}s`;
+}
+
+function normalizeSelectedChannelIds(channelIds: string[] | undefined, channelId = '') {
+  const selectedChannelIds: string[] = [];
+
+  [...(channelIds ?? []), channelId].forEach((value) => {
+    const normalizedValue = value.trim();
+
+    if (normalizedValue && !selectedChannelIds.includes(normalizedValue)) {
+      selectedChannelIds.push(normalizedValue);
+    }
+  });
+
+  return selectedChannelIds;
 }

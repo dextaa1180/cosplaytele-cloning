@@ -40,7 +40,7 @@ export default async function ConnectionsPage() {
   const telegramConfigured = isTelegramIntegrationConfigured(telegramSettings);
   const telegramStatus: IntegrationStatus = telegramConfigured
     ? 'connected'
-    : telegramBotTokenConfigured || telegramSettings.channelId
+    : telegramBotTokenConfigured || telegramSettings.channelIds.length > 0
       ? 'partial'
       : 'not-configured';
   const whatsappConfigured = Boolean(
@@ -62,8 +62,8 @@ export default async function ConnectionsPage() {
           required: true,
         },
         {
-          label: 'Channel ID',
-          configured: Boolean(telegramSettings.channelId),
+          label: 'Channel IDs',
+          configured: telegramSettings.channelIds.length > 0,
           required: true,
         },
         {

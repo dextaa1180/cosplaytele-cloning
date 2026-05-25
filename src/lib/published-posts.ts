@@ -174,7 +174,7 @@ export function managedPostToDraft(post: ManagedPost): AdminPostDraft {
     thumbnailUrl: post.thumbnail,
     heroImageUrl: post.heroImage ?? '',
     fileSize: post.fileSize ?? '',
-    unzipPassword: post.unzipPassword ?? 'cosplaytele',
+    unzipPassword: post.unzipPassword ?? 'tunacosplay',
     description: post.description ?? '',
     downloadLinks: {
       mediafire: post.downloadLinks?.mediafire ?? '',
@@ -257,7 +257,7 @@ async function publishSupabasePost(draft: AdminPostDraft) {
     thumbnail_url: draft.thumbnailUrl || null,
     hero_image_url: draft.heroImageUrl || null,
     file_size: draft.fileSize || null,
-    unzip_password: draft.unzipPassword || 'cosplaytele',
+    unzip_password: draft.unzipPassword || 'tunacosplay',
     description: draft.description || null,
     status: draft.status,
     created_at: draft.createdAt,

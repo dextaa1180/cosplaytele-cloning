@@ -29,6 +29,7 @@ export async function PATCH(request: Request) {
       activeBotId: sanitizeString(payload.activeBotId),
       botOptions: sanitizeBotOptions(payload.botOptions),
       channelId: sanitizeString(payload.channelId),
+      channelIds: sanitizeChannelIds(payload.channelIds),
       channelOptions: sanitizeChannelOptions(payload.channelOptions),
       postLabel: sanitizeString(payload.postLabel),
       publicSiteUrl: sanitizeString(payload.publicSiteUrl),
@@ -102,6 +103,18 @@ function sanitizeChannelOptions(value: unknown) {
       } satisfies TelegramChannelOption;
     })
     .filter((item): item is TelegramChannelOption => item !== null);
+}
+
+function sanitizeChannelIds(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map(sanitizeString)
+    .filter((channelId, index, channelIds) => {
+      return channelId && channelIds.indexOf(channelId) === index;
+    });
 }
 
 function sanitizeString(value: unknown) {

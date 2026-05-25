@@ -4,6 +4,7 @@ import { Telegraf } from 'telegraf';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
 import {
   getActiveTelegramBotToken,
+  getActiveTelegramChannelIds,
   getTelegramIntegrationSettings,
   type TelegramIntegrationSettings,
 } from '@/lib/integration-settings';
@@ -15,7 +16,7 @@ interface TelegramPostMessage {
   postId: string;
 }
 
-type TelegramMessageSnapshot = Record<string, TelegramPostMessage>;
+type TelegramMessageSnapshot = Record<string, TelegramPostMessage[]>;
 
 const cachedBots = new Map<string, Telegraf>();
 
@@ -31,21 +32,29 @@ export async function syncTelegramPostMessage(draft: AdminPostDraft) {
   const existingMessage = await getStoredTelegramPostMessage(draft.id);
   const messageText = createTelegramPostMessage(draft, config.settings);
 
-  if (existingMessage) {
-    await editTelegramMessage(existingMessage, messageText, config.botToken);
-    return;
-  }
+  await Promise.all(
+    config.channelIds.map(async (channelId) => {
+      const channelMessage = existingMessage.find(
+        (message) => message.chatId === channelId,
+      );
 
-  const sentMessage = await sendTelegramMessage(
-    config.channelId,
-    messageText,
-    config.botToken,
+      if (channelMessage) {
+        await editTelegramMessage(channelMessage, messageText, config.botToken);
+        return;
+      }
+
+      const sentMessage = await sendTelegramMessage(
+        channelId,
+        messageText,
+        config.botToken,
+      );
+      await storeTelegramPostMessage({
+        chatId: channelId,
+        messageId: sentMessage.message_id,
+        postId: draft.id,
+      });
+    }),
   );
-  await storeTelegramPostMessage({
-    chatId: config.channelId,
-    messageId: sentMessage.message_id,
-    postId: draft.id,
-  });
 }
 
 export async function deleteTelegramPostMessage(postId: string) {
@@ -54,15 +63,19 @@ export async function deleteTelegramPostMessage(postId: string) {
     return;
   }
 
-  const existingMessage = await getStoredTelegramPostMessage(postId);
-  if (!existingMessage) {
+  const existingMessages = await getStoredTelegramPostMessage(postId);
+  if (existingMessages.length === 0) {
     return;
   }
 
   try {
-    await getTelegramBot(config.botToken).telegram.deleteMessage(
-      existingMessage.chatId,
-      existingMessage.messageId,
+    await Promise.allSettled(
+      existingMessages.map((message) =>
+        getTelegramBot(config.botToken).telegram.deleteMessage(
+          message.chatId,
+          message.messageId,
+        ),
+      ),
     );
   } finally {
     await removeStoredTelegramPostMessage(postId);
@@ -72,13 +85,13 @@ export async function deleteTelegramPostMessage(postId: string) {
 async function getTelegramConfig() {
   const settings = await getTelegramIntegrationSettings();
   const botToken = getActiveTelegramBotToken(settings);
-  const channelId = settings.channelId;
+  const channelIds = getActiveTelegramChannelIds(settings);
 
-  if (!botToken || !channelId) {
+  if (!botToken || channelIds.length === 0) {
     return null;
   }
 
-  return { botToken, channelId, settings };
+  return { botToken, channelIds, settings };
 }
 
 async function sendTelegramMessage(
@@ -172,15 +185,14 @@ async function getStoredTelegramPostMessage(postId: string) {
     const { data, error } = await supabase
       .from('telegram_post_messages')
       .select('post_id, chat_id, message_id')
-      .eq('post_id', postId)
-      .maybeSingle();
+      .eq('post_id', postId);
 
     if (!error && data) {
-      return {
-        chatId: data.chat_id as string,
-        messageId: Number(data.message_id),
-        postId: data.post_id as string,
-      } satisfies TelegramPostMessage;
+      return data.map((message) => ({
+        chatId: message.chat_id as string,
+        messageId: Number(message.message_id),
+        postId: message.post_id as string,
+      })) satisfies TelegramPostMessage[];
     }
 
     if (error && error.code !== 'PGRST116') {
@@ -189,7 +201,8 @@ async function getStoredTelegramPostMessage(postId: string) {
   }
 
   const localMessages = await readLocalTelegramMessages();
-  return localMessages[postId] ?? null;
+  const storedMessages = localMessages[postId] ?? [];
+  return Array.isArray(storedMessages) ? storedMessages : [storedMessages];
 }
 
 async function storeTelegramPostMessage(message: TelegramPostMessage) {
@@ -201,7 +214,7 @@ async function storeTelegramPostMessage(message: TelegramPostMessage) {
         message_id: message.messageId,
         post_id: message.postId,
       },
-      { onConflict: 'post_id' },
+      { onConflict: 'post_id,chat_id' },
     );
 
     if (!error) {
@@ -212,7 +225,11 @@ async function storeTelegramPostMessage(message: TelegramPostMessage) {
   }
 
   const localMessages = await readLocalTelegramMessages();
-  localMessages[message.postId] = message;
+  const storedMessages = localMessages[message.postId] ?? [];
+  const nextMessages = storedMessages.filter(
+    (storedMessage) => storedMessage.chatId !== message.chatId,
+  );
+  localMessages[message.postId] = [...nextMessages, message];
   await writeLocalTelegramMessages(localMessages);
 }
 

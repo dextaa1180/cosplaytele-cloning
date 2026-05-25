@@ -37,7 +37,8 @@ export async function POST(request: Request) {
     } | null;
     const settings = await getTelegramIntegrationSettings();
     const botId = payload?.botId?.trim() || settings.activeBotId;
-    const channelId = payload?.channelId?.trim() || settings.channelId;
+    const channelId =
+      payload?.channelId?.trim() || settings.channelIds[0] || settings.channelId;
     const botToken = getTelegramBotToken(settings, botId);
 
     if (!botToken) {

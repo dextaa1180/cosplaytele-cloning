@@ -72,7 +72,7 @@ export function AdminPostEditor({
   const [videoCount, setVideoCount] = useState(initialDraft?.videoCount ?? 0);
   const [fileSize, setFileSize] = useState(initialDraft?.fileSize ?? '');
   const [unzipPassword, setUnzipPassword] = useState(
-    initialDraft?.unzipPassword ?? 'cosplaytele',
+    initialDraft?.unzipPassword ?? 'tunacosplay',
   );
   const [description, setDescription] = useState(initialDraft?.description ?? '');
   const [thumbnailName, setThumbnailName] = useState(
@@ -466,7 +466,7 @@ export function AdminPostEditor({
     setPhotoCount(0);
     setVideoCount(0);
     setFileSize('');
-    setUnzipPassword('cosplaytele');
+    setUnzipPassword('tunacosplay');
     setDescription('');
     setThumbnailName('');
     setHeroName('');

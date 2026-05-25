@@ -85,7 +85,7 @@ export async function upsertSupabaseDraft(draft: AdminPostDraft) {
     thumbnail_url: draft.thumbnailUrl || null,
     hero_image_url: draft.heroImageUrl || null,
     file_size: draft.fileSize || null,
-    unzip_password: draft.unzipPassword || 'cosplaytele',
+    unzip_password: draft.unzipPassword || 'tunacosplay',
     description: draft.description || null,
     status: 'draft' as const,
     created_at: draft.createdAt,
@@ -188,7 +188,7 @@ function rowToDraft(row: DraftPostRow): AdminPostDraft {
     thumbnailUrl: row.thumbnail_url ?? '',
     heroImageUrl: row.hero_image_url ?? '',
     fileSize: row.file_size ?? '',
-    unzipPassword: row.unzip_password ?? 'cosplaytele',
+    unzipPassword: row.unzip_password ?? 'tunacosplay',
     description: row.description ?? '',
     downloadLinks: {
       mediafire: row.download_links.find((link) => link.provider === 'mediafire')?.url ?? '',

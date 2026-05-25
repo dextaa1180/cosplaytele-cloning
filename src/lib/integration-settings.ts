@@ -17,6 +17,7 @@ export interface TelegramIntegrationSettings {
   activeBotId: string;
   botOptions: TelegramBotOption[];
   channelId: string;
+  channelIds: string[];
   channelOptions: TelegramChannelOption[];
   postLabel: string;
   publicSiteUrl: string;
@@ -63,7 +64,10 @@ export async function saveTelegramIntegrationSettings(
 export function isTelegramIntegrationConfigured(
   settings: TelegramIntegrationSettings,
 ) {
-  return Boolean(getActiveTelegramBotToken(settings) && settings.channelId);
+  return Boolean(
+    getActiveTelegramBotToken(settings) &&
+      getActiveTelegramChannelIds(settings).length > 0,
+  );
 }
 
 export function getActiveTelegramBotToken(settings: TelegramIntegrationSettings) {
@@ -79,10 +83,17 @@ export function getTelegramBotToken(
   return activeBot?.token?.trim() || process.env.TELEGRAM_BOT_TOKEN?.trim() || '';
 }
 
+export function getActiveTelegramChannelIds(
+  settings: TelegramIntegrationSettings,
+) {
+  return normalizeChannelIds(settings.channelIds, settings.channelId);
+}
+
 function normalizeTelegramIntegrationSettings(value: unknown) {
   const source = isRecord(value) ? value : {};
   const envChannelId = process.env.TELEGRAM_CHANNEL_ID?.trim() ?? '';
   const channelId = getStringValue(source.channelId).trim() || envChannelId;
+  const channelIds = normalizeChannelIds(source.channelIds, channelId);
   const botOptions = getBotOptions(source.botOptions);
   const envBotToken = process.env.TELEGRAM_BOT_TOKEN?.trim() ?? '';
   const envBotOption = envBotToken
@@ -118,8 +129,9 @@ function normalizeTelegramIntegrationSettings(value: unknown) {
   return {
     activeBotId,
     botOptions: mergedBotOptions,
-    channelId,
-    channelOptions: ensureActiveChannelOption(channelOptions, channelId),
+    channelId: channelIds[0] ?? '',
+    channelIds,
+    channelOptions: ensureActiveChannelOptions(channelOptions, channelIds),
     postLabel,
     publicSiteUrl: removeTrailingSlashes(publicSiteUrl),
     shopUrl,
@@ -232,21 +244,22 @@ function getChannelOptions(value: unknown) {
     );
 }
 
-function ensureActiveChannelOption(
+function ensureActiveChannelOptions(
   options: TelegramChannelOption[],
-  channelId: string,
+  channelIds: string[],
 ) {
-  if (!channelId || options.some((option) => option.id === channelId)) {
+  const missingOptions = channelIds
+    .filter((channelId) => !options.some((option) => option.id === channelId))
+    .map((channelId) => ({
+      id: channelId,
+      label: channelId,
+    }));
+
+  if (missingOptions.length === 0) {
     return options;
   }
 
-  return [
-    {
-      id: channelId,
-      label: channelId,
-    },
-    ...options,
-  ];
+  return [...missingOptions, ...options];
 }
 
 async function readIntegrationSetting(key: string) {
@@ -313,6 +326,21 @@ async function writeLocalIntegrationSettings(settings: IntegrationSettingsSnapsh
 
 function getStringValue(value: unknown) {
   return typeof value === 'string' ? value : '';
+}
+
+function normalizeChannelIds(value: unknown, fallbackChannelId = '') {
+  const sourceIds = Array.isArray(value) ? value : [];
+  const channelIds: string[] = [];
+
+  [...sourceIds, fallbackChannelId].forEach((item) => {
+    const channelId = getStringValue(item).trim();
+
+    if (channelId && !channelIds.includes(channelId)) {
+      channelIds.push(channelId);
+    }
+  });
+
+  return channelIds;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
