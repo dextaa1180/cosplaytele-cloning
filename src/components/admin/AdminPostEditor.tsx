@@ -347,10 +347,10 @@ export function AdminPostEditor({
   };
 
   const handleAddManualVideo = () => {
-    const normalizedUrl = normalizeDoodStreamEmbedUrl(manualVideoUrl);
+    const normalizedUrl = normalizeVideoEmbedUrl(manualVideoUrl);
     if (!normalizedUrl) {
       setPreviewUploadFeedback({
-        message: 'Enter a valid DoodStream video link or embed URL first.',
+        message: 'Enter a valid video embed URL first.',
         tone: 'error',
       });
       return;
@@ -364,8 +364,8 @@ export function AdminPostEditor({
       fileSize: 0,
       url: normalizedUrl,
       posterUrl: manualVideoPosterUrl.trim() || undefined,
-      alt: `DoodStream video ${nextOrder}`,
-      duration: 'DoodStream',
+      alt: `Embedded video ${nextOrder}`,
+      duration: 'Embed',
       sortOrder: nextOrder,
       storageStatus: 'uploaded',
     } satisfies DraftMedia;
@@ -374,7 +374,7 @@ export function AdminPostEditor({
     setManualVideoUrl('');
     setManualVideoPosterUrl('');
     setPreviewUploadFeedback({
-      message: 'DoodStream video embed added to preview media.',
+      message: 'Video embed added to preview media.',
       tone: 'success',
     });
     setValidationMessages([]);
@@ -889,7 +889,7 @@ export function AdminPostEditor({
               )}
 
               <div className="mb-4 grid min-w-0 gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end dark:border-slate-800 dark:bg-slate-950">
-                <Field label="DoodStream video URL">
+                <Field label="Video embed URL">
                   <input
                     value={manualVideoUrl}
                     onChange={(event) => {
@@ -898,7 +898,7 @@ export function AdminPostEditor({
                       setPreviewUploadFeedback(null);
                     }}
                     className={inputClassName}
-                    placeholder="https://dood.to/e/..."
+                    placeholder="https://myvidplay.com/e/..."
                   />
                 </Field>
                 <Field label="Poster URL">
@@ -1180,14 +1180,18 @@ function isSameTag(left: string, right: string) {
   return left.trim().toLowerCase() === right.trim().toLowerCase();
 }
 
-function normalizeDoodStreamEmbedUrl(value: string) {
-  const trimmedValue = value.trim();
+function normalizeVideoEmbedUrl(value: string) {
+  const trimmedValue = extractUrlFromEmbedInput(value);
   if (!trimmedValue) {
     return '';
   }
 
   try {
     const url = new URL(trimmedValue);
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      return '';
+    }
+
     const hostname = url.hostname.replace(/^www\./, '');
     const pathParts = url.pathname.split('/').filter(Boolean);
     const fileCode = pathParts[pathParts.length - 1] ?? '';
@@ -1196,8 +1200,12 @@ function normalizeDoodStreamEmbedUrl(value: string) {
       return '';
     }
 
-    if (isDoodStreamEmbedHost(hostname)) {
+    if (isKnownVideoEmbedHost(hostname)) {
       return `${url.protocol}//${url.hostname}/e/${fileCode}`;
+    }
+
+    if (isGenericEmbedPath(pathParts)) {
+      return url.toString();
     }
   } catch {
     return '';
@@ -1206,13 +1214,36 @@ function normalizeDoodStreamEmbedUrl(value: string) {
   return '';
 }
 
-function isDoodStreamEmbedHost(hostname: string) {
+function extractUrlFromEmbedInput(value: string) {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return '';
+  }
+
+  const iframeSourceMatch = trimmedValue.match(/\bsrc=["']([^"']+)["']/i);
+  return iframeSourceMatch?.[1]?.trim() ?? trimmedValue;
+}
+
+function isKnownVideoEmbedHost(hostname: string) {
   return (
     hostname === 'dood.to' ||
     hostname === 'doodstream.com' ||
     hostname === 'playmogo.com' ||
+    hostname === 'myvidplay.com' ||
     hostname.endsWith('.doodstream.com') ||
     hostname.startsWith('dood.')
+  );
+}
+
+function isGenericEmbedPath(pathParts: string[]) {
+  const firstPart = pathParts[0]?.toLowerCase() ?? '';
+  return (
+    firstPart === 'e' ||
+    firstPart === 'embed' ||
+    firstPart === 'player' ||
+    firstPart === 'v' ||
+    firstPart === 'video' ||
+    pathParts.some((part) => part.toLowerCase().startsWith('embed'))
   );
 }
 
@@ -1220,9 +1251,10 @@ function createManualVideoName(embedUrl: string) {
   try {
     const url = new URL(embedUrl);
     const fileCode = url.pathname.split('/').filter(Boolean).pop();
-    return fileCode ? `doodstream-${fileCode}` : 'doodstream-video';
+    const hostname = url.hostname.replace(/^www\./, '').replace(/[^a-z0-9]+/gi, '-');
+    return fileCode ? `embed-${hostname}-${fileCode}` : `embed-${hostname}-video`;
   } catch {
-    return 'doodstream-video';
+    return 'embedded-video';
   }
 }
 

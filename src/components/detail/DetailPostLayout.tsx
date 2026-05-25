@@ -396,17 +396,57 @@ function VideoPreview({ media, index }: VideoPreviewProps) {
 
 function isEmbeddableVideoUrl(url: string) {
   try {
-    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return false;
+    }
+
+    if (isDirectVideoFile(parsedUrl.pathname)) {
+      return false;
+    }
+
+    const hostname = parsedUrl.hostname.replace(/^www\./, '');
+    const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
     return (
-      hostname === 'dood.to' ||
-      hostname === 'doodstream.com' ||
-      hostname === 'playmogo.com' ||
-      hostname.endsWith('.doodstream.com') ||
-      hostname.startsWith('dood.')
+      isKnownVideoEmbedHost(hostname) ||
+      isGenericEmbedPath(pathParts)
     );
   } catch {
     return false;
   }
+}
+
+function isKnownVideoEmbedHost(hostname: string) {
+  return (
+    hostname === 'dood.to' ||
+    hostname === 'doodstream.com' ||
+    hostname === 'playmogo.com' ||
+    hostname === 'myvidplay.com' ||
+    hostname.endsWith('.doodstream.com') ||
+    hostname.startsWith('dood.')
+  );
+}
+
+function isGenericEmbedPath(pathParts: string[]) {
+  const firstPart = pathParts[0]?.toLowerCase() ?? '';
+  return (
+    firstPart === 'e' ||
+    firstPart === 'embed' ||
+    firstPart === 'player' ||
+    firstPart === 'v' ||
+    firstPart === 'video' ||
+    pathParts.some((part) => part.toLowerCase().startsWith('embed'))
+  );
+}
+
+function isDirectVideoFile(pathname: string) {
+  const normalizedPath = pathname.split('?')[0]?.toLowerCase() ?? '';
+  return (
+    normalizedPath.endsWith('.mp4') ||
+    normalizedPath.endsWith('.m4v') ||
+    normalizedPath.endsWith('.webm') ||
+    normalizedPath.endsWith('.ogg')
+  );
 }
 
 function getVideoMimeType(url: string) {
