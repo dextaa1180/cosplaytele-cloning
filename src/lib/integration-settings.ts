@@ -286,7 +286,9 @@ async function writeIntegrationSetting(key: string, value: unknown) {
       return;
     }
 
-    console.error('Unable to write integration settings.', error.message);
+    throw new Error(
+      `Unable to write integration settings to database: ${error.message}. Run supabase/migrations/007_integration_settings.sql on the VPS database.`,
+    );
   }
 
   const localSettings = await readLocalIntegrationSettings();

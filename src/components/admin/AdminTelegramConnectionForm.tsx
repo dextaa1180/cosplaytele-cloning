@@ -214,7 +214,7 @@ export function AdminTelegramConnectionForm({
       setSettings(responsePayload.settings);
       setManageMode(null);
       setMessageType('success');
-      setMessage('Telegram settings saved.');
+      setMessage('Telegram settings saved to database.');
     } catch (error) {
       setMessageType('error');
       setMessage(
@@ -340,7 +340,9 @@ export function AdminTelegramConnectionForm({
                       {botOption.label || botOption.id}
                     </span>
                     <span className="block truncate text-xs opacity-75">
-                      {botOption.token ? 'Token set' : 'Token not set'}
+                      {botOption.token
+                        ? 'Token saved in database'
+                        : 'Token not set'}
                     </span>
                   </span>
                 </button>

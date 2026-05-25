@@ -16,25 +16,37 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const payload = (await request.json().catch(() => null)) as Partial<
-    TelegramIntegrationSettings
-  > | null;
+  try {
+    const payload = (await request.json().catch(() => null)) as Partial<
+      TelegramIntegrationSettings
+    > | null;
 
-  if (!payload) {
-    return Response.json({ error: 'Invalid settings payload.' }, { status: 400 });
+    if (!payload) {
+      return Response.json({ error: 'Invalid settings payload.' }, { status: 400 });
+    }
+
+    const settings = await saveTelegramIntegrationSettings({
+      activeBotId: sanitizeString(payload.activeBotId),
+      botOptions: sanitizeBotOptions(payload.botOptions),
+      channelId: sanitizeString(payload.channelId),
+      channelOptions: sanitizeChannelOptions(payload.channelOptions),
+      postLabel: sanitizeString(payload.postLabel),
+      publicSiteUrl: sanitizeString(payload.publicSiteUrl),
+      shopUrl: sanitizeString(payload.shopUrl),
+    });
+
+    return Response.json({ settings });
+  } catch (error) {
+    return Response.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to save Telegram settings.',
+      },
+      { status: 500 },
+    );
   }
-
-  const settings = await saveTelegramIntegrationSettings({
-    activeBotId: sanitizeString(payload.activeBotId),
-    botOptions: sanitizeBotOptions(payload.botOptions),
-    channelId: sanitizeString(payload.channelId),
-    channelOptions: sanitizeChannelOptions(payload.channelOptions),
-    postLabel: sanitizeString(payload.postLabel),
-    publicSiteUrl: sanitizeString(payload.publicSiteUrl),
-    shopUrl: sanitizeString(payload.shopUrl),
-  });
-
-  return Response.json({ settings });
 }
 
 function sanitizeBotOptions(value: unknown) {
