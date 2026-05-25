@@ -2,6 +2,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Telegraf } from 'telegraf';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
+import {
+  getTelegramIntegrationSettings,
+  type TelegramIntegrationSettings,
+} from '@/lib/integration-settings';
 import { getSupabaseAdminClient } from '@/lib/supabase/server';
 
 interface TelegramPostMessage {
@@ -18,20 +22,24 @@ const dataDirectory = path.join(process.cwd(), '.data');
 const telegramMessagesFile = path.join(dataDirectory, 'telegram-post-messages.json');
 
 export async function syncTelegramPostMessage(draft: AdminPostDraft) {
-  const config = getTelegramConfig();
+  const config = await getTelegramConfig();
   if (!config) {
     return;
   }
 
   const existingMessage = await getStoredTelegramPostMessage(draft.id);
-  const messageText = createTelegramPostMessage(draft);
+  const messageText = createTelegramPostMessage(draft, config.settings);
 
   if (existingMessage) {
-    await editTelegramMessage(existingMessage, messageText);
+    await editTelegramMessage(existingMessage, messageText, config.botToken);
     return;
   }
 
-  const sentMessage = await sendTelegramMessage(config.channelId, messageText);
+  const sentMessage = await sendTelegramMessage(
+    config.channelId,
+    messageText,
+    config.botToken,
+  );
   await storeTelegramPostMessage({
     chatId: config.channelId,
     messageId: sentMessage.message_id,
@@ -40,7 +48,7 @@ export async function syncTelegramPostMessage(draft: AdminPostDraft) {
 }
 
 export async function deleteTelegramPostMessage(postId: string) {
-  const config = getTelegramConfig();
+  const config = await getTelegramConfig();
   if (!config) {
     return;
   }
@@ -60,37 +68,33 @@ export async function deleteTelegramPostMessage(postId: string) {
   }
 }
 
-function getTelegramConfig() {
+async function getTelegramConfig() {
   const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const channelId = process.env.TELEGRAM_CHANNEL_ID?.trim();
+  const settings = await getTelegramIntegrationSettings();
+  const channelId = settings.channelId;
 
   if (!botToken || !channelId) {
     return null;
   }
 
-  return { botToken, channelId };
+  return { botToken, channelId, settings };
 }
 
-async function sendTelegramMessage(chatId: string, messageText: string) {
-  const config = getTelegramConfig();
-  if (!config) {
-    throw new Error('Telegram bot is not configured.');
-  }
-
-  return getTelegramBot(config.botToken).telegram.sendMessage(chatId, messageText);
+async function sendTelegramMessage(
+  chatId: string,
+  messageText: string,
+  botToken: string,
+) {
+  return getTelegramBot(botToken).telegram.sendMessage(chatId, messageText);
 }
 
 async function editTelegramMessage(
   message: TelegramPostMessage,
   messageText: string,
+  botToken: string,
 ) {
-  const config = getTelegramConfig();
-  if (!config) {
-    return;
-  }
-
   try {
-    await getTelegramBot(config.botToken).telegram.editMessageText(
+    await getTelegramBot(botToken).telegram.editMessageText(
       message.chatId,
       message.messageId,
       undefined,
@@ -111,10 +115,13 @@ function getTelegramBot(botToken: string) {
   return cachedBot;
 }
 
-function createTelegramPostMessage(draft: AdminPostDraft) {
-  const titleLabel = process.env.TELEGRAM_POST_LABEL?.trim() || 'ASUPAN';
-  const siteUrl = getPublicSiteUrl();
-  const shopUrl = process.env.TELEGRAM_SHOP_URL?.trim() || 'https://tunakaslana.shop/';
+function createTelegramPostMessage(
+  draft: AdminPostDraft,
+  settings: TelegramIntegrationSettings,
+) {
+  const titleLabel = settings.postLabel || 'ASUPAN';
+  const siteUrl = getPublicSiteUrl(settings);
+  const shopUrl = settings.shopUrl || 'https://tunakaslana.shop/';
   const postUrl = `${siteUrl}/${encodeURIComponent(draft.slug)}`;
   const postDate = new Date(draft.createdAt || Date.now());
   const photoLabel = `${draft.photoCount} photo${draft.photoCount === 1 ? '' : 's'}`;
@@ -230,8 +237,9 @@ async function writeLocalTelegramMessages(messages: TelegramMessageSnapshot) {
   await writeFile(telegramMessagesFile, JSON.stringify(messages, null, 2));
 }
 
-function getPublicSiteUrl() {
+function getPublicSiteUrl(settings: TelegramIntegrationSettings) {
   const siteUrl =
+    settings.publicSiteUrl ||
     process.env.PUBLIC_SITE_URL?.trim() ||
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
     process.env.PUBLIC_STORAGE_BASE_URL?.trim() ||

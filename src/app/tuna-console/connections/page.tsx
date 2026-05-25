@@ -7,6 +7,12 @@ import {
   Send,
   Webhook,
 } from 'lucide-react';
+import { AdminTelegramConnectionForm } from '@/components/admin/AdminTelegramConnectionForm';
+import {
+  getTelegramIntegrationSettings,
+  isTelegramBotTokenConfigured,
+  isTelegramIntegrationConfigured,
+} from '@/lib/integration-settings';
 import { cn } from '@/lib/utils';
 
 type IntegrationStatus = 'connected' | 'partial' | 'not-configured';
@@ -23,10 +29,18 @@ interface IntegrationItem {
   status: IntegrationStatus;
 }
 
-export default function ConnectionsPage() {
-  const telegramConfigured = Boolean(
-    process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHANNEL_ID,
-  );
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+export default async function ConnectionsPage() {
+  const telegramSettings = await getTelegramIntegrationSettings();
+  const telegramBotTokenConfigured = isTelegramBotTokenConfigured();
+  const telegramConfigured = isTelegramIntegrationConfigured(telegramSettings);
+  const telegramStatus: IntegrationStatus = telegramConfigured
+    ? 'connected'
+    : telegramBotTokenConfigured || telegramSettings.channelId
+      ? 'partial'
+      : 'not-configured';
   const whatsappConfigured = Boolean(
     process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID,
   );
@@ -38,7 +52,7 @@ export default function ConnectionsPage() {
       description:
         'Auto-send new published content, then edit or delete the same channel message when content changes.',
       icon: Send,
-      status: telegramConfigured ? 'connected' : 'not-configured',
+      status: telegramStatus,
       fields: [
         {
           label: 'Bot token',
@@ -47,16 +61,16 @@ export default function ConnectionsPage() {
         },
         {
           label: 'Channel ID',
-          configured: Boolean(process.env.TELEGRAM_CHANNEL_ID),
+          configured: Boolean(telegramSettings.channelId),
           required: true,
         },
         {
           label: 'Shop link',
-          configured: Boolean(process.env.TELEGRAM_SHOP_URL),
+          configured: Boolean(telegramSettings.shopUrl),
         },
         {
           label: 'Public site URL',
-          configured: Boolean(process.env.PUBLIC_SITE_URL),
+          configured: Boolean(telegramSettings.publicSiteUrl),
         },
       ],
     },
@@ -126,6 +140,11 @@ export default function ConnectionsPage() {
           <IntegrationCard key={integration.name} integration={integration} />
         ))}
       </section>
+
+      <AdminTelegramConnectionForm
+        botTokenConfigured={telegramBotTokenConfigured}
+        initialSettings={telegramSettings}
+      />
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-start gap-3">
