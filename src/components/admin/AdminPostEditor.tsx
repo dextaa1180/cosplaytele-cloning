@@ -842,6 +842,29 @@ export function AdminPostEditor({
             </section>
 
             <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+              <h2 className="mb-4 text-base font-semibold text-slate-950 dark:text-white">
+                Download Links
+              </h2>
+              <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                {downloadLinkFields.map((field) => (
+                  <Field key={field.key} label={field.label}>
+                    <div className="relative min-w-0">
+                      <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                      <input
+                        value={downloadLinks[field.key]}
+                        onChange={(event) =>
+                          handleDownloadLinkChange(field.key, event.target.value)
+                        }
+                        className={cn(inputClassName, 'pl-9')}
+                        placeholder="https://"
+                      />
+                    </div>
+                  </Field>
+                ))}
+              </div>
+            </section>
+
+            <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-base font-semibold text-slate-950 dark:text-white">
@@ -969,29 +992,6 @@ export function AdminPostEditor({
                     </p>
                   </div>
                 )}
-              </div>
-            </section>
-
-            <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-              <h2 className="mb-4 text-base font-semibold text-slate-950 dark:text-white">
-                Download Links
-              </h2>
-              <div className="grid min-w-0 gap-4 md:grid-cols-2">
-                {downloadLinkFields.map((field) => (
-                  <Field key={field.key} label={field.label}>
-                    <div className="relative min-w-0">
-                      <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-                      <input
-                        value={downloadLinks[field.key]}
-                        onChange={(event) =>
-                          handleDownloadLinkChange(field.key, event.target.value)
-                        }
-                        className={cn(inputClassName, 'pl-9')}
-                        placeholder="https://"
-                      />
-                    </div>
-                  </Field>
-                ))}
               </div>
             </section>
           </form>
