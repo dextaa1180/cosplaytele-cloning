@@ -19,11 +19,16 @@ interface TelegramPostMessage {
 type TelegramMessageSnapshot = Record<string, TelegramPostMessage[]>;
 
 const cachedBots = new Map<string, Telegraf>();
+const telegramPostSyncLocks = new Map<string, Promise<void>>();
 
 const dataDirectory = path.join(process.cwd(), '.data');
 const telegramMessagesFile = path.join(dataDirectory, 'telegram-post-messages.json');
 
 export async function syncTelegramPostMessage(draft: AdminPostDraft) {
+  await withTelegramPostSyncLock(draft.id, () => syncTelegramPostMessageLocked(draft));
+}
+
+async function syncTelegramPostMessageLocked(draft: AdminPostDraft) {
   const config = await getTelegramConfig();
   if (!config) {
     return;
@@ -55,6 +60,24 @@ export async function syncTelegramPostMessage(draft: AdminPostDraft) {
       });
     }),
   );
+}
+
+async function withTelegramPostSyncLock(
+  postId: string,
+  task: () => Promise<void>,
+) {
+  const previousLock = telegramPostSyncLocks.get(postId) ?? Promise.resolve();
+  const currentLock = previousLock
+    .catch(() => undefined)
+    .then(task)
+    .finally(() => {
+      if (telegramPostSyncLocks.get(postId) === currentLock) {
+        telegramPostSyncLocks.delete(postId);
+      }
+    });
+
+  telegramPostSyncLocks.set(postId, currentLock);
+  await currentLock;
 }
 
 export async function deleteTelegramPostMessage(postId: string) {
@@ -100,6 +123,7 @@ async function sendTelegramMessage(
   botToken: string,
 ) {
   return getTelegramBot(botToken).telegram.sendMessage(chatId, messageText, {
+    parse_mode: 'HTML',
     link_preview_options: {
       is_disabled: true,
     },
@@ -118,6 +142,7 @@ async function editTelegramMessage(
       undefined,
       messageText,
       {
+        parse_mode: 'HTML',
         link_preview_options: {
           is_disabled: true,
         },
@@ -152,31 +177,65 @@ function createTelegramPostMessage(
   const postDate = new Date(draft.createdAt || Date.now());
   const photoLabel = `${draft.photoCount} photo${draft.photoCount === 1 ? '' : 's'}`;
   const videoLabel = `${draft.videoCount} video${draft.videoCount === 1 ? '' : 's'}`;
-  const fileSizeLabel = draft.fileSize.trim() || '-';
+  const fileSizeLabel = escapeTelegramHtml(draft.fileSize.trim() || '-');
+  const postLinks = createTelegramInlineLinks([
+    { label: '[ Preview ]', url: postUrl },
+    ...createDownloadProviderLinks(draft.downloadLinks),
+  ]);
 
   return [
-    `📌 ${titleLabel} (${formatTelegramDate(postDate)})`,
+    `\u{1F4CC} ${escapeTelegramHtml(titleLabel)} (${formatTelegramDate(postDate)})`,
     '',
-    draft.title.trim(),
+    escapeTelegramHtml(draft.title.trim()),
     '',
-    `👤 Cosplayer: ${draft.cosplayer.trim()}`,
-    `🎭 Character: ${draft.character.trim()}`,
-    `✨ Appear In: ${draft.source.trim()}`,
+    `\u{1F464} Cosplayer: ${escapeTelegramHtml(draft.cosplayer.trim())}`,
+    `\u{1F3AD} Character: ${escapeTelegramHtml(draft.character.trim())}`,
+    `\u{2728} Appear In: ${escapeTelegramHtml(draft.source.trim())}`,
     '',
-    `🖼 Photos: ${photoLabel}`,
-    `🎬 Videos: ${videoLabel}`,
-    `📦 File Size: ${fileSizeLabel}`,
+    `\u{1F5BC} Photos: ${photoLabel}`,
+    `\u{1F3AC} Videos: ${videoLabel}`,
+    `\u{1F4E6} File Size: ${fileSizeLabel}`,
     '',
-    'Preview & Download di website ⬇️',
+    'Preview & Download di website \u{2B07}\u{FE0F}',
     'Link:',
-    `➡️ ${postUrl}`,
-    '❗️ Yang dari tiktok gabung channel dulu atau salin aja terus buka di browser kalian masing masing, kalau langsung kalian buka dari tiktok gak bakal bisa.',
+    `\u{27A1}\u{FE0F} ${postLinks}`,
+    '\u{2757}\u{FE0F} Yang dari tiktok gabung channel dulu atau salin aja terus buka di browser kalian masing masing, kalau langsung kalian buka dari tiktok gak bakal bisa.',
     '',
-    'KUNJUNGI ETALASE TUNA 🛍',
-    `➡️ ${shopUrl}`,
+    'KUNJUNGI ETALASE TUNA \u{1F6CD}',
+    `\u{27A1}\u{FE0F} ${createTelegramLink('Etalase Tuna', shopUrl)}`,
     '',
-    'Thank you | Terima Kasih 🥰',
+    'Thank you | Terima Kasih \u{1F970}',
   ].join('\n');
+}
+
+function createDownloadProviderLinks(
+  downloadLinks: AdminPostDraft['downloadLinks'],
+) {
+  return [
+    { label: '[ Terabox ]', url: downloadLinks.terabox },
+    { label: '[ Mediafire ]', url: downloadLinks.mediafire },
+    { label: '[ Gofile ]', url: downloadLinks.gofile },
+    { label: '[ Telegram Backup ]', url: downloadLinks.telegram },
+  ].filter((link) => link.url.trim());
+}
+
+function createTelegramInlineLinks(links: { label: string; url: string }[]) {
+  return links.map((link) => createTelegramLink(link.label, link.url)).join(' | ');
+}
+
+function createTelegramLink(label: string, url: string) {
+  return `<a href="${escapeTelegramHtmlAttribute(url)}">${escapeTelegramHtml(label)}</a>`;
+}
+
+function escapeTelegramHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeTelegramHtmlAttribute(value: string) {
+  return escapeTelegramHtml(value).replace(/"/g, '&quot;');
 }
 
 async function getStoredTelegramPostMessage(postId: string) {

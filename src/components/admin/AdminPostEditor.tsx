@@ -1,7 +1,7 @@
 'use client';
 
 import imageCompression from 'browser-image-compression';
-import { ChangeEvent, KeyboardEvent, useMemo, useState } from 'react';
+import { ChangeEvent, KeyboardEvent, useMemo, useRef, useState } from 'react';
 import {
   Check,
   FileImage,
@@ -100,6 +100,7 @@ export function AdminPostEditor({
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const publishRequestInFlight = useRef(false);
 
   const counts = useMemo(
     () => ({
@@ -419,6 +420,10 @@ export function AdminPostEditor({
   };
 
   const handlePublishPost = async () => {
+    if (publishRequestInFlight.current) {
+      return;
+    }
+
     const messages = validateDraft();
     setValidationMessages(messages);
 
@@ -427,6 +432,7 @@ export function AdminPostEditor({
       return;
     }
 
+    publishRequestInFlight.current = true;
     setPublishing(true);
 
     try {
@@ -440,6 +446,7 @@ export function AdminPostEditor({
     } catch (error) {
       setSaveMessage(error instanceof Error ? error.message : 'Post could not be published.');
     } finally {
+      publishRequestInFlight.current = false;
       setPublishing(false);
     }
   };

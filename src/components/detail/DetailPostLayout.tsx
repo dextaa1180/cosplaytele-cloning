@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ImageIcon, Play, Video } from 'lucide-react';
@@ -11,6 +12,8 @@ import {
 import { getCosplayerSlug } from '@/lib/cosplayers';
 import { shouldBypassImageOptimizer } from '@/lib/media';
 import { getSourceSlug } from '@/lib/sources';
+
+const previewMediaPageSize = 12;
 
 interface DetailPostLayoutProps {
   postId: string;
@@ -66,6 +69,20 @@ export function DetailPostLayout({
   );
   const sortedPreviewMedia = [...previewMedia].sort(
     (a, b) => a.sortOrder - b.sortOrder,
+  );
+  const [visiblePreviewCount, setVisiblePreviewCount] = useState(
+    previewMediaPageSize,
+  );
+  const videoPreviewMedia = sortedPreviewMedia.filter(
+    (media) => media.type === 'video',
+  );
+  const imagePreviewMedia = sortedPreviewMedia.filter(
+    (media) => media.type === 'image',
+  );
+  const visiblePreviewMedia = imagePreviewMedia.slice(0, visiblePreviewCount);
+  const hiddenPreviewCount = Math.max(
+    imagePreviewMedia.length - visiblePreviewMedia.length,
+    0,
   );
 
   return (
@@ -272,36 +289,78 @@ export function DetailPostLayout({
 
           {sortedPreviewMedia.length > 0 ? (
             <>
-              <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {sortedPreviewMedia.slice(0, 8).map((media, index) => (
-                  <div
-                    key={media.id}
-                    className="relative aspect-square overflow-hidden rounded-lg bg-neutral-800"
-                  >
-                    {media.type === 'image' && media.url ? (
-                      <Image
-                        src={media.url}
-                        alt={media.alt || `Preview photo ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        unoptimized={shouldBypassImageOptimizer(media.url)}
-                      />
-                    ) : (
-                      <VideoPreview media={media} index={index} />
-                    )}
-
-                    <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-                      {media.type === 'image' ? (
-                        <ImageIcon className="h-3 w-3" aria-hidden="true" />
-                      ) : (
-                        <Video className="h-3 w-3" aria-hidden="true" />
-                      )}
-                      {media.type}
-                    </div>
+              {videoPreviewMedia.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="mb-4 text-lg font-semibold">Streaming Video</h3>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {videoPreviewMedia.map((media, index) => (
+                      <div
+                        key={media.id}
+                        className="relative aspect-video overflow-hidden rounded-lg bg-black shadow-lg"
+                      >
+                        <VideoPreview media={media} index={index} />
+                        <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                          <Video className="h-3 w-3" aria-hidden="true" />
+                          Video
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {imagePreviewMedia.length > 0 && (
+                <>
+                  <h3 className="mb-4 text-lg font-semibold">Preview Images</h3>
+                  <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    {visiblePreviewMedia.map((media, index) => (
+                      <div
+                        key={media.id}
+                        className="relative aspect-square overflow-hidden rounded-lg bg-neutral-800"
+                      >
+                        {media.url ? (
+                          <Image
+                            src={media.url}
+                            alt={media.alt || `Preview photo ${index + 1}`}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            unoptimized={shouldBypassImageOptimizer(media.url)}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-neutral-700">
+                            <ImageIcon className="h-10 w-10 text-neutral-300" aria-hidden="true" />
+                          </div>
+                        )}
+
+                        <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                          <ImageIcon className="h-3 w-3" aria-hidden="true" />
+                          Image
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              {hiddenPreviewCount > 0 && (
+                <div className="mb-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisiblePreviewCount((current) =>
+                        Math.min(
+                          current + previewMediaPageSize,
+                          imagePreviewMedia.length,
+                        ),
+                      )
+                    }
+                    className="rounded-full border border-neutral-700 bg-neutral-800 px-5 py-2 text-sm font-semibold text-white transition hover:border-cyan-400 hover:text-cyan-200"
+                  >
+                    Show more preview ({visiblePreviewMedia.length}/
+                    {imagePreviewMedia.length})
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="mb-6 rounded-lg border border-neutral-700 bg-neutral-800 p-8 text-center">
@@ -352,7 +411,7 @@ function VideoPreview({ media, index }: VideoPreviewProps) {
 
     return (
       <video
-        className="h-full w-full object-cover"
+        className="h-full w-full bg-black object-contain"
         controls
         muted
         playsInline
