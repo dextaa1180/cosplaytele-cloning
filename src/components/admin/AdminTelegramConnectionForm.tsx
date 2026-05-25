@@ -1,9 +1,10 @@
 'use client';
 
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { Bot, Plus, Save, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { ADMIN_API_BASE_PATH } from '@/lib/admin-auth';
 import type {
+  TelegramBotOption,
   TelegramChannelOption,
   TelegramIntegrationSettings,
 } from '@/lib/integration-settings';
@@ -24,7 +25,13 @@ export function AdminTelegramConnectionForm({
   const [messageType, setMessageType] = useState<'error' | 'success'>('success');
 
   const hasChannel = Boolean(settings.channelId.trim());
-  const isConnected = botTokenConfigured && hasChannel;
+  const activeBot = settings.botOptions.find(
+    (botOption) => botOption.id === settings.activeBotId,
+  );
+  const hasActiveBotToken =
+    botTokenConfigured ||
+    Boolean(activeBot?.token === 'configured' || activeBot?.token?.trim());
+  const isConnected = hasActiveBotToken && hasChannel;
 
   const activeChannelOptions = useMemo(() => {
     if (
@@ -42,6 +49,57 @@ export function AdminTelegramConnectionForm({
       ...settings.channelOptions,
     ];
   }, [settings.channelId, settings.channelOptions]);
+
+  const updateBotOption = (
+    index: number,
+    field: keyof TelegramBotOption,
+    value: string,
+  ) => {
+    setSettings((current) => {
+      const nextOptions = current.botOptions.map((option, optionIndex) =>
+        optionIndex === index ? { ...option, [field]: value } : option,
+      );
+
+      return {
+        ...current,
+        botOptions: nextOptions,
+      };
+    });
+  };
+
+  const addBotOption = () => {
+    const botId = `telegram-bot-${Date.now()}`;
+    setSettings((current) => ({
+      ...current,
+      activeBotId: current.activeBotId || botId,
+      botOptions: [
+        ...current.botOptions,
+        {
+          id: botId,
+          label: '',
+          token: '',
+        },
+      ],
+    }));
+  };
+
+  const removeBotOption = (index: number) => {
+    setSettings((current) => {
+      const removedOption = current.botOptions[index];
+      const nextOptions = current.botOptions.filter(
+        (_option, optionIndex) => optionIndex !== index,
+      );
+
+      return {
+        ...current,
+        activeBotId:
+          removedOption?.id === current.activeBotId
+            ? nextOptions[0]?.id ?? ''
+            : current.activeBotId,
+        botOptions: nextOptions,
+      };
+    });
+  };
 
   const updateChannelOption = (
     index: number,
@@ -101,23 +159,32 @@ export function AdminTelegramConnectionForm({
     setMessage('');
 
     try {
+      const payload = {
+        ...settings,
+        botOptions: settings.botOptions.map((botOption) => ({
+          ...botOption,
+          token: botOption.token === 'configured' ? '' : botOption.token,
+        })),
+      } satisfies TelegramIntegrationSettings;
       const response = await fetch(`${ADMIN_API_BASE_PATH}/integrations/telegram`, {
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
         headers: {
           'Content-Type': 'application/json',
         },
         method: 'PATCH',
       });
-      const payload = (await response.json().catch(() => null)) as {
+      const responsePayload = (await response.json().catch(() => null)) as {
         error?: string;
         settings?: TelegramIntegrationSettings;
       } | null;
 
-      if (!response.ok || !payload?.settings) {
-        throw new Error(payload?.error || 'Unable to save Telegram settings.');
+      if (!response.ok || !responsePayload?.settings) {
+        throw new Error(
+          responsePayload?.error || 'Unable to save Telegram settings.',
+        );
       }
 
-      setSettings(payload.settings);
+      setSettings(responsePayload.settings);
       setMessageType('success');
       setMessage('Telegram settings saved.');
     } catch (error) {
@@ -138,7 +205,7 @@ export function AdminTelegramConnectionForm({
             Telegram Bot Settings
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-            Choose the channel that receives automatic post notifications and
+            Add Telegram bot tokens, choose the active bot and channel, then
             adjust the links used inside the channel message.
           </p>
         </div>
@@ -154,38 +221,103 @@ export function AdminTelegramConnectionForm({
         </span>
       </div>
 
-      {!botTokenConfigured ? (
-        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
-          Bot token is still stored only in the server environment. Add
-          TELEGRAM_BOT_TOKEN to the VPS .env.local first, then use this page to
-          choose the channel and message links.
+      <div className="mt-5 space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-950 dark:text-white">
+              Active bot
+            </h3>
+            <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+              Select which bot token will send, edit, and delete channel posts.
+            </p>
+          </div>
         </div>
-      ) : null}
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        <label className="space-y-2">
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-            Active channel
-          </span>
-          <select
-            value={settings.channelId}
-            onChange={(event) =>
-              setSettings((current) => ({
-                ...current,
-                channelId: event.target.value,
-              }))
-            }
-            className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-950"
-          >
-            <option value="">Select channel</option>
-            {activeChannelOptions.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label} ({option.id})
-              </option>
+        {settings.botOptions.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {settings.botOptions.map((botOption) => (
+              <button
+                key={botOption.id}
+                type="button"
+                onClick={() =>
+                  setSettings((current) => ({
+                    ...current,
+                    activeBotId: botOption.id,
+                  }))
+                }
+                className={cn(
+                  'flex min-h-16 items-center gap-3 rounded-lg border p-3 text-left transition',
+                  settings.activeBotId === botOption.id
+                    ? 'border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900',
+                )}
+              >
+                <Bot className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-bold">
+                    {botOption.label || botOption.id}
+                  </span>
+                  <span className="block truncate text-xs opacity-75">
+                    {botOption.token ? 'Token set' : 'Token not set'}
+                  </span>
+                </span>
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            No bot option yet. Add at least one Telegram bot token.
+          </div>
+        )}
+      </div>
 
+      <div className="mt-6 space-y-3">
+        <div>
+          <h3 className="text-sm font-bold text-slate-950 dark:text-white">
+            Active channel
+          </h3>
+          <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+            Pick one destination channel. This replaces the dropdown so the
+            layout stays tidy on mobile and desktop.
+          </p>
+        </div>
+
+        {activeChannelOptions.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {activeChannelOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() =>
+                  setSettings((current) => ({
+                    ...current,
+                    channelId: option.id,
+                  }))
+                }
+                className={cn(
+                  'min-h-14 rounded-lg border p-3 text-left transition',
+                  settings.channelId === option.id
+                    ? 'border-cyan-500 bg-cyan-50 text-cyan-950 ring-2 ring-cyan-100 dark:border-cyan-400 dark:bg-cyan-950/30 dark:text-cyan-100 dark:ring-cyan-950'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900',
+                )}
+              >
+                <span className="block truncate text-sm font-bold">
+                  {option.label}
+                </span>
+                <span className="mt-1 block truncate text-xs opacity-75">
+                  {option.id}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            No channel option yet. Add a channel below, then select it here.
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <label className="space-y-2">
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             Post label
@@ -220,7 +352,7 @@ export function AdminTelegramConnectionForm({
           />
         </label>
 
-        <label className="space-y-2 lg:col-span-3">
+        <label className="space-y-2 lg:col-span-2">
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             Public site URL
           </span>
@@ -240,6 +372,89 @@ export function AdminTelegramConnectionForm({
             https://tunacosplay.site/post-slug.
           </p>
         </label>
+      </div>
+
+      <div className="mt-6 space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-950 dark:text-white">
+              Bot options
+            </h3>
+            <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+              Saved tokens are hidden after saving. Leave token blank to keep an
+              existing saved token.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={addBotOption}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Add Bot
+          </button>
+        </div>
+
+        {settings.botOptions.length > 0 ? (
+          <div className="space-y-3">
+            {settings.botOptions.map((botOption, index) => (
+              <div
+                key={`${botOption.id}-${index}`}
+                className="grid gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800 md:grid-cols-[1fr_1.5fr_auto_auto]"
+              >
+                <input
+                  value={botOption.label}
+                  onChange={(event) =>
+                    updateBotOption(index, 'label', event.target.value)
+                  }
+                  className="h-10 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-950"
+                  placeholder="Bot label"
+                />
+                <input
+                  value={botOption.token === 'configured' ? '' : botOption.token ?? ''}
+                  onChange={(event) =>
+                    updateBotOption(index, 'token', event.target.value)
+                  }
+                  className="h-10 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-950"
+                  placeholder={
+                    botOption.token === 'configured'
+                      ? 'Token saved. Leave blank to keep it.'
+                      : 'Telegram bot token'
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings((current) => ({
+                      ...current,
+                      activeBotId: botOption.id,
+                    }))
+                  }
+                  className={cn(
+                    'h-10 rounded-lg px-3 text-sm font-semibold transition',
+                    settings.activeBotId === botOption.id
+                      ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
+                      : 'border border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800',
+                  )}
+                >
+                  {settings.activeBotId === botOption.id ? 'Selected' : 'Use'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeBotOption(index)}
+                  className="inline-flex h-10 items-center justify-center rounded-lg border border-rose-200 px-3 text-rose-600 transition hover:bg-rose-50 dark:border-rose-900/70 dark:text-rose-300 dark:hover:bg-rose-950/30"
+                  aria-label="Remove bot"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            No bot option yet. Add at least one Telegram bot token.
+          </div>
+        )}
       </div>
 
       <div className="mt-6 space-y-3">

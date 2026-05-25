@@ -9,8 +9,9 @@ import {
 } from 'lucide-react';
 import { AdminTelegramConnectionForm } from '@/components/admin/AdminTelegramConnectionForm';
 import {
+  getActiveTelegramBotToken,
+  getPublicTelegramIntegrationSettings,
   getTelegramIntegrationSettings,
-  isTelegramBotTokenConfigured,
   isTelegramIntegrationConfigured,
 } from '@/lib/integration-settings';
 import { cn } from '@/lib/utils';
@@ -34,7 +35,8 @@ export const runtime = 'nodejs';
 
 export default async function ConnectionsPage() {
   const telegramSettings = await getTelegramIntegrationSettings();
-  const telegramBotTokenConfigured = isTelegramBotTokenConfigured();
+  const publicTelegramSettings = await getPublicTelegramIntegrationSettings();
+  const telegramBotTokenConfigured = Boolean(getActiveTelegramBotToken(telegramSettings));
   const telegramConfigured = isTelegramIntegrationConfigured(telegramSettings);
   const telegramStatus: IntegrationStatus = telegramConfigured
     ? 'connected'
@@ -56,7 +58,7 @@ export default async function ConnectionsPage() {
       fields: [
         {
           label: 'Bot token',
-          configured: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+          configured: telegramBotTokenConfigured,
           required: true,
         },
         {
@@ -143,7 +145,7 @@ export default async function ConnectionsPage() {
 
       <AdminTelegramConnectionForm
         botTokenConfigured={telegramBotTokenConfigured}
-        initialSettings={telegramSettings}
+        initialSettings={publicTelegramSettings}
       />
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -156,9 +158,8 @@ export default async function ConnectionsPage() {
               Secure server-side tokens
             </h2>
             <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
-              Tokens are read only from server environment variables. This page
-              shows whether a connection is configured without printing secret
-              values to the browser.
+              Saved bot tokens are never printed back to the browser after
+              saving. This page only shows whether a connection is configured.
             </p>
           </div>
         </div>

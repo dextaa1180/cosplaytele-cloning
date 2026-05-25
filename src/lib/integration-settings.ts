@@ -7,7 +7,15 @@ export interface TelegramChannelOption {
   label: string;
 }
 
+export interface TelegramBotOption {
+  id: string;
+  label: string;
+  token?: string;
+}
+
 export interface TelegramIntegrationSettings {
+  activeBotId: string;
+  botOptions: TelegramBotOption[];
   channelId: string;
   channelOptions: TelegramChannelOption[];
   postLabel: string;
@@ -34,24 +42,58 @@ export async function getTelegramIntegrationSettings() {
   return normalizeTelegramIntegrationSettings(savedSettings);
 }
 
+export async function getPublicTelegramIntegrationSettings() {
+  return redactTelegramIntegrationSettings(await getTelegramIntegrationSettings());
+}
+
 export async function saveTelegramIntegrationSettings(
   settings: TelegramIntegrationSettings,
 ) {
   const normalizedSettings = normalizeTelegramIntegrationSettings(settings);
-  await writeIntegrationSetting(telegramSettingsKey, normalizedSettings);
-  return normalizedSettings;
+  const previousSettings = await getTelegramIntegrationSettings();
+  const settingsWithPreservedTokens = preserveExistingTelegramTokens(
+    normalizedSettings,
+    previousSettings,
+  );
+
+  await writeIntegrationSetting(telegramSettingsKey, settingsWithPreservedTokens);
+  return redactTelegramIntegrationSettings(settingsWithPreservedTokens);
 }
 
 export function isTelegramIntegrationConfigured(
   settings: TelegramIntegrationSettings,
 ) {
-  return Boolean(isTelegramBotTokenConfigured() && settings.channelId);
+  return Boolean(getActiveTelegramBotToken(settings) && settings.channelId);
+}
+
+export function getActiveTelegramBotToken(settings: TelegramIntegrationSettings) {
+  const activeBot = settings.botOptions.find(
+    (bot) => bot.id === settings.activeBotId,
+  );
+
+  return activeBot?.token?.trim() || process.env.TELEGRAM_BOT_TOKEN?.trim() || '';
 }
 
 function normalizeTelegramIntegrationSettings(value: unknown) {
   const source = isRecord(value) ? value : {};
   const envChannelId = process.env.TELEGRAM_CHANNEL_ID?.trim() ?? '';
   const channelId = getStringValue(source.channelId).trim() || envChannelId;
+  const botOptions = getBotOptions(source.botOptions);
+  const envBotToken = process.env.TELEGRAM_BOT_TOKEN?.trim() ?? '';
+  const envBotOption = envBotToken
+    ? [
+        {
+          id: 'env-telegram-bot',
+          label: 'Environment Bot',
+          token: envBotToken,
+        },
+      ]
+    : [];
+  const mergedBotOptions = mergeBotOptions(botOptions, envBotOption);
+  const activeBotId =
+    getStringValue(source.activeBotId).trim() ||
+    mergedBotOptions[0]?.id ||
+    '';
   const channelOptions = getChannelOptions(source.channelOptions);
   const postLabel =
     getStringValue(source.postLabel).trim() ||
@@ -69,11 +111,91 @@ function normalizeTelegramIntegrationSettings(value: unknown) {
     'https://tunacosplay.site';
 
   return {
+    activeBotId,
+    botOptions: mergedBotOptions,
     channelId,
     channelOptions: ensureActiveChannelOption(channelOptions, channelId),
     postLabel,
     publicSiteUrl: removeTrailingSlashes(publicSiteUrl),
     shopUrl,
+  } satisfies TelegramIntegrationSettings;
+}
+
+function getBotOptions(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const options: TelegramBotOption[] = [];
+
+  value.forEach((item) => {
+    if (!isRecord(item)) {
+      return;
+    }
+
+    const id = getStringValue(item.id).trim();
+    if (!id || options.some((option) => option.id === id)) {
+      return;
+    }
+
+    options.push({
+      id,
+      label: getStringValue(item.label).trim() || id,
+      token: getStringValue(item.token).trim(),
+    });
+  });
+
+  return options;
+}
+
+function mergeBotOptions(
+  savedOptions: TelegramBotOption[],
+  fallbackOptions: TelegramBotOption[],
+) {
+  const mergedOptions = [...savedOptions];
+
+  fallbackOptions.forEach((fallbackOption) => {
+    if (
+      fallbackOption.id &&
+      !mergedOptions.some((option) => option.id === fallbackOption.id)
+    ) {
+      mergedOptions.push(fallbackOption);
+    }
+  });
+
+  return mergedOptions;
+}
+
+function preserveExistingTelegramTokens(
+  nextSettings: TelegramIntegrationSettings,
+  previousSettings: TelegramIntegrationSettings,
+) {
+  return {
+    ...nextSettings,
+    botOptions: nextSettings.botOptions.map((bot) => {
+      if (bot.token && bot.token !== 'configured') {
+        return bot;
+      }
+
+      const previousBot = previousSettings.botOptions.find(
+        (candidate) => candidate.id === bot.id,
+      );
+
+      return {
+        ...bot,
+        token: previousBot?.token ?? '',
+      };
+    }),
+  } satisfies TelegramIntegrationSettings;
+}
+
+function redactTelegramIntegrationSettings(settings: TelegramIntegrationSettings) {
+  return {
+    ...settings,
+    botOptions: settings.botOptions.map((bot) => ({
+      ...bot,
+      token: bot.token ? 'configured' : '',
+    })),
   } satisfies TelegramIntegrationSettings;
 }
 

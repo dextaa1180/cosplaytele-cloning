@@ -3,6 +3,7 @@ import path from 'node:path';
 import { Telegraf } from 'telegraf';
 import type { AdminPostDraft } from '@/lib/admin-drafts';
 import {
+  getActiveTelegramBotToken,
   getTelegramIntegrationSettings,
   type TelegramIntegrationSettings,
 } from '@/lib/integration-settings';
@@ -69,8 +70,8 @@ export async function deleteTelegramPostMessage(postId: string) {
 }
 
 async function getTelegramConfig() {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const settings = await getTelegramIntegrationSettings();
+  const botToken = getActiveTelegramBotToken(settings);
   const channelId = settings.channelId;
 
   if (!botToken || !channelId) {

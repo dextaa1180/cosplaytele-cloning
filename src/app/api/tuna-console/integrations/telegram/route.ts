@@ -1,6 +1,7 @@
 import {
-  getTelegramIntegrationSettings,
+  getPublicTelegramIntegrationSettings,
   saveTelegramIntegrationSettings,
+  type TelegramBotOption,
   type TelegramChannelOption,
   type TelegramIntegrationSettings,
 } from '@/lib/integration-settings';
@@ -10,7 +11,7 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   return Response.json({
-    settings: await getTelegramIntegrationSettings(),
+    settings: await getPublicTelegramIntegrationSettings(),
   });
 }
 
@@ -24,6 +25,8 @@ export async function PATCH(request: Request) {
   }
 
   const settings = await saveTelegramIntegrationSettings({
+    activeBotId: sanitizeString(payload.activeBotId),
+    botOptions: sanitizeBotOptions(payload.botOptions),
     channelId: sanitizeString(payload.channelId),
     channelOptions: sanitizeChannelOptions(payload.channelOptions),
     postLabel: sanitizeString(payload.postLabel),
@@ -32,6 +35,36 @@ export async function PATCH(request: Request) {
   });
 
   return Response.json({ settings });
+}
+
+function sanitizeBotOptions(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const options: TelegramBotOption[] = [];
+
+  value.forEach((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      return;
+    }
+
+    const record = item as Record<string, unknown>;
+    const id = sanitizeString(record.id);
+    if (!id || options.some((option) => option.id === id)) {
+      return;
+    }
+
+    const token = sanitizeString(record.token);
+
+    options.push({
+      id,
+      label: sanitizeString(record.label) || id,
+      token: token === 'configured' ? '' : token,
+    });
+  });
+
+  return options;
 }
 
 function sanitizeChannelOptions(value: unknown) {
