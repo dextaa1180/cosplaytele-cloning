@@ -17,7 +17,7 @@ interface TelegramPostMessage {
 
 type TelegramMessageSnapshot = Record<string, TelegramPostMessage>;
 
-let cachedBot: Telegraf | null = null;
+const cachedBots = new Map<string, Telegraf>();
 
 const dataDirectory = path.join(process.cwd(), '.data');
 const telegramMessagesFile = path.join(dataDirectory, 'telegram-post-messages.json');
@@ -109,11 +109,14 @@ async function editTelegramMessage(
 }
 
 function getTelegramBot(botToken: string) {
-  if (!cachedBot) {
-    cachedBot = new Telegraf(botToken);
+  const cachedBot = cachedBots.get(botToken);
+  if (cachedBot) {
+    return cachedBot;
   }
 
-  return cachedBot;
+  const bot = new Telegraf(botToken);
+  cachedBots.set(botToken, bot);
+  return bot;
 }
 
 function createTelegramPostMessage(

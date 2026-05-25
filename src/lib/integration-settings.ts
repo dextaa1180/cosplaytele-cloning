@@ -67,9 +67,14 @@ export function isTelegramIntegrationConfigured(
 }
 
 export function getActiveTelegramBotToken(settings: TelegramIntegrationSettings) {
-  const activeBot = settings.botOptions.find(
-    (bot) => bot.id === settings.activeBotId,
-  );
+  return getTelegramBotToken(settings, settings.activeBotId);
+}
+
+export function getTelegramBotToken(
+  settings: TelegramIntegrationSettings,
+  botId: string,
+) {
+  const activeBot = settings.botOptions.find((bot) => bot.id === botId);
 
   return activeBot?.token?.trim() || process.env.TELEGRAM_BOT_TOKEN?.trim() || '';
 }
